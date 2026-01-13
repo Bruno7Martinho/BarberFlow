@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - BarberFlow</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="estilo.css">
+    <script src="menu.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo-container">
+                <div class="logo">
+                    <i class="fas fa-cut"></i>
+                    <h1>BarberFlow</h1>
+                </div>
+
+                <!-- BOTÃO HAMBÚRGUER - ADICIONE ESTE BOTÃO -->
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <div class="user-info" id="userInfo">
+                    <span id="userName">Carregando...</span>
+                    <button onclick="logout()" class="btn-logout">Sair</button>
+                </div>
+            </div>
+
+            <!-- OVERLAY DO MENU - ADICIONE ESTE DIV -->
+            <div class="menu-overlay" id="menuOverlay"></div>
+
+            <!-- Navegação (mantenha como está) -->
+            <nav class="navbar">
+                <ul>
+                    <li><a href="index.html"><i class="fas fa-home"></i> Dashboard</a></li>
+                    <li><a href="agendamentos.html" class="active"><i class="fas fa-calendar-alt"></i> Agendamentos</a>
+                    </li>
+                    <li><a href="clientes.html"><i class="fas fa-users"></i> Clientes</a></li>
+                    <li><a href="servicos.html"><i class="fas fa-concierge-bell"></i> Serviços</a></li>
+                    <li><a href="financeiro.html"><i class="fas fa-chart-line"></i> Financeiro</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main class="main-content">
+            <!-- Widget de data e hora -->
+            <div class="datetime-widget fade-in">
+                <div class="current-time" id="currentTime">00:00:00</div>
+                <div class="current-date" id="currentDate">Carregando...</div>
+            </div>
+
+            <!-- Mensagem de boas-vindas -->
+            <div class="welcome-section fade-in">
+                <h2 id="welcomeMessage">Bem-vindo ao BarberFlow</h2>
+                <p id="dashboardMessage">Carregando informações do sistema...</p>
+            </div>
+
+            <!-- Cards de estatísticas -->
+            <div class="stats-grid">
+                <div class="stat-card fade-in">
+                    <i class="fas fa-calendar-check"></i>
+                    <h3>Agendamentos Hoje</h3>
+                    <div class="stat-value" id="todayAppointments">0</div>
+                    <div class="stat-change" id="todayAppointmentsChange">Carregando...</div>
+                </div>
+
+                <div class="stat-card fade-in">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <h3>Receita do Mês</h3>
+                    <div class="stat-value" id="monthRevenue">R$ 0,00</div>
+                    <div class="stat-change" id="monthRevenueChange">Carregando...</div>
+                </div>
+
+                <div class="stat-card fade-in">
+                    <i class="fas fa-users"></i>
+                    <h3>Total de Clientes</h3>
+                    <div class="stat-value" id="totalClients">0</div>
+                    <div class="stat-change" id="newClients">Carregando...</div>
+                </div>
+
+                <div class="stat-card fade-in">
+                    <i class="fas fa-chart-line"></i>
+                    <h3>Taxa de Ocupação</h3>
+                    <div class="stat-value" id="occupancyRate">0%</div>
+                    <div class="stat-change" id="occupancyTrend">Carregando...</div>
+                </div>
+            </div>
+
+            <!-- Desempenho dos Barbeiros -->
+            <div class="recent-appointments fade-in">
+                <h3><i class="fas fa-user-tie"></i> Desempenho dos Barbeiros (Este Mês)</h3>
+                <div id="barberPerformance">
+                    <div class="empty-state">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Carregando desempenho dos barbeiros...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ações rápidas -->
+            <div class="quick-actions fade-in">
+                <a href="agendamentos.html?action=new" class="action-btn">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Novo Agendamento</span>
+                </a>
+
+                <a href="clientes.html?action=new" class="action-btn">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Novo Cliente</span>
+                </a>
+
+                <a href="agendamentos.html" class="action-btn">
+                    <i class="fas fa-calendar-day"></i>
+                    <span>Ver Agenda Hoje</span>
+                </a>
+
+                <a href="financeiro.html" class="action-btn">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Relatórios Financeiros</span>
+                </a>
+            </div>
+
+            <!-- Próximos agendamentos -->
+            <div class="recent-appointments fade-in">
+                <h3><i class="fas fa-clock"></i> Próximos Agendamentos</h3>
+                <div id="upcomingAppointments">
+                    <div class="empty-state">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Carregando agendamentos...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>BarberFlow © <span id="currentYear">2024</span> - Sistema de Gestão Profissional</p>
+        </footer>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- Dashboard Script -->
+    <script>
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDIqJpw0EnBnkZWvXIbMQIxai394lsqAKA",
+            authDomain: "barbearia-84d78.firebaseapp.com",
+            projectId: "barbearia-84d78",
+            storageBucket: "barbearia-84d78.firebasestorage.app",
+            messagingSenderId: "42251761510",
+            appId: "1:42251761510:web:03e036a25931a461c43aa7"
+        };
+
+        // Variáveis globais
+        let db = null;
+        let auth = null;
+        let currentUser = null;
+
+        // Inicializar Firebase
+        function initializeFirebase() {
+            try {
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                }
+                auth = firebase.auth();
+                db = firebase.firestore();
+
+                console.log('✅ Firebase inicializado com sucesso!');
+
+                // Verificar autenticação
+                auth.onAuthStateChanged(user => {
+                    if (user) {
+                        currentUser = user;
+                        const userName = user.email.split('@')[0];
+                        document.getElementById('userName').textContent = userName;
+                        document.getElementById('welcomeMessage').textContent = `Bem-vindo, ${userName}!`;
+                        loadDashboardData();
+                    } else {
+                        // Se não estiver autenticado, redirecionar para login
+                        window.location.href = 'login.html';
+                    }
+                });
+
+            } catch (error) {
+                console.error('❌ Erro ao inicializar Firebase:', error);
+                document.getElementById('dashboardMessage').textContent = 'Erro ao conectar com o banco de dados. Atualize a página.';
+                document.getElementById('dashboardMessage').style.color = '#dc3545';
+            }
+        }
+
+        // Atualizar data e hora em tempo real
+        function updateDateTime() {
+            const now = new Date();
+
+            // Formatar hora
+            const timeString = now.toLocaleTimeString('pt-BR', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+
+            // Formatar data
+            const dateString = now.toLocaleDateString('pt-BR', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+
+            document.getElementById('currentTime').textContent = timeString;
+            document.getElementById('currentDate').textContent = dateString;
+
+            // Atualizar saudação baseada na hora
+            const hour = now.getHours();
+            let greeting = 'Boa noite';
+            if (hour >= 5 && hour < 12) greeting = 'Bom dia';
+            else if (hour >= 12 && hour < 18) greeting = 'Boa tarde';
+
+            if (currentUser) {
+                const userName = currentUser.email.split('@')[0];
+                document.getElementById('welcomeMessage').textContent = `${greeting}, ${userName}!`;
+            }
+        }
+
+        // Carregar dados do dashboard
+        async function loadDashboardData() {
+            if (!db) {
+                console.error('❌ Banco de dados não disponível');
+                return;
+            }
+
+            try {
+                document.getElementById('dashboardMessage').textContent = 'Atualizando informações...';
+
+                // Data atual
+                const today = new Date().toISOString().split('T')[0];
+
+                // 1. CONTAR AGENDAMENTOS DE HOJE
+                const allAppointments = await db.collection('appointments').get();
+                let todayCount = 0;
+                let monthRevenue = 0;
+                let completedThisMonth = 0;
+
+                // Mês atual
+                const firstDay = new Date();
+                firstDay.setDate(1);
+                firstDay.setHours(0, 0, 0, 0);
+
+                const lastDay = new Date(firstDay);
+                lastDay.setMonth(lastDay.getMonth() + 1);
+                lastDay.setDate(0);
+                lastDay.setHours(23, 59, 59, 999);
+
+                // Processar todos os agendamentos localmente
+                for (const doc of allAppointments.docs) {
+                    const appointment = doc.data();
+
+                    // Verificar se é de hoje
+                    if (appointment.date === today &&
+                        (appointment.status === 'Agendado' || appointment.status === 'Confirmado')) {
+                        todayCount++;
+                    }
+
+                    // Verificar se é deste mês e está concluído
+                    const appDate = new Date(appointment.date);
+                    if (appDate >= firstDay && appDate <= lastDay && appointment.status === 'Concluído') {
+                        completedThisMonth++;
+
+                        // Buscar preço do serviço
+                        if (appointment.serviceId) {
+                            try {
+                                const serviceDoc = await db.collection('services').doc(appointment.serviceId).get();
+                                if (serviceDoc.exists) {
+                                    const service = serviceDoc.data();
+                                    monthRevenue += service.price || 0;
+                                }
+                            } catch (error) {
+                                console.error('Erro ao buscar serviço:', error);
+                            }
+                        }
+                    }
+                }
+
+                // Atualizar cards
+                document.getElementById('todayAppointments').textContent = todayCount;
+                document.getElementById('todayAppointmentsChange').textContent = `${todayCount} agendamentos hoje`;
+
+                document.getElementById('monthRevenue').textContent =
+                    `R$ ${monthRevenue.toFixed(2).replace('.', ',')}`;
+                document.getElementById('monthRevenueChange').textContent =
+                    `${completedThisMonth} serviços concluídos`;
+
+                // 2. CONTAR TOTAL DE CLIENTES
+                const clientsSnapshot = await db.collection('clients').get();
+                const totalClients = clientsSnapshot.size;
+                document.getElementById('totalClients').textContent = totalClients;
+                document.getElementById('newClients').textContent = `${totalClients} clientes cadastrados`;
+
+                // 3. CALCULAR TAXA DE OCUPAÇÃO
+                const totalSlots = 96; // 4 barbeiros × 12 horas (8h-20h) ÷ 0.5h por serviço
+                const occupancyRate = Math.round((todayCount / totalSlots) * 100);
+                document.getElementById('occupancyRate').textContent = `${occupancyRate}%`;
+
+                if (occupancyRate > 80) {
+                    document.getElementById('occupancyTrend').textContent = '🔴 Alta demanda - Agenda cheia';
+                    document.getElementById('occupancyTrend').className = 'stat-change negative';
+                } else if (occupancyRate > 60) {
+                    document.getElementById('occupancyTrend').textContent = '🟡 Média - Alguns horários disponíveis';
+                } else if (occupancyRate > 30) {
+                    document.getElementById('occupancyTrend').textContent = '🟢 Normal - Muitos horários livres';
+                    document.getElementById('occupancyTrend').className = 'stat-change positive';
+                } else {
+                    document.getElementById('occupancyTrend').textContent = '⚪ Baixa - Poucos agendamentos';
+                }
+
+                // 4. CARREGAR PRÓXIMOS AGENDAMENTOS
+                await loadUpcomingAppointments(allAppointments);
+
+                // 5. CARREGAR DESEMPENHO DOS BARBEIROS
+                await loadBarberPerformance(allAppointments);
+
+                // Atualizar mensagem final
+                document.getElementById('dashboardMessage').textContent =
+                    `Sistema atualizado • ${todayCount} agendamentos hoje • R$ ${monthRevenue.toFixed(2).replace('.', ',')} em receitas`;
+                document.getElementById('dashboardMessage').style.color = '#28a745';
+
+            } catch (error) {
+                console.error('❌ Erro ao carregar dados:', error);
+                document.getElementById('dashboardMessage').textContent = 'Erro ao carregar dados. Tente novamente.';
+                document.getElementById('dashboardMessage').style.color = '#dc3545';
+            }
+        }
+
+        // Carregar próximos agendamentos
+        async function loadUpcomingAppointments(allAppointmentsSnapshot) {
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const upcomingAppointments = [];
+
+                // Filtrar agendamentos futuros localmente
+                for (const doc of allAppointmentsSnapshot.docs) {
+                    const appointment = doc.data();
+
+                    // Verificar se é hoje ou futuro
+                    if (appointment.date >= today &&
+                        (appointment.status === 'Agendado' || appointment.status === 'Confirmado')) {
+
+                        // Buscar nome do cliente
+                        let clientName = 'Cliente não encontrado';
+                        if (appointment.clientId) {
+                            try {
+                                const clientDoc = await db.collection('clients').doc(appointment.clientId).get();
+                                if (clientDoc.exists) {
+                                    clientName = clientDoc.data().name || 'Cliente';
+                                }
+                            } catch (error) {
+                                console.error('Erro ao buscar cliente:', error);
+                            }
+                        }
+
+                        // Buscar nome do serviço
+                        let serviceName = 'Serviço';
+                        if (appointment.serviceId) {
+                            try {
+                                const serviceDoc = await db.collection('services').doc(appointment.serviceId).get();
+                                if (serviceDoc.exists) {
+                                    serviceName = serviceDoc.data().name || 'Serviço';
+                                }
+                            } catch (error) {
+                                console.error('Erro ao buscar serviço:', error);
+                            }
+                        }
+
+                        upcomingAppointments.push({
+                            ...appointment,
+                            clientName,
+                            serviceName,
+                            id: doc.id
+                        });
+                    }
+                }
+
+                // Ordenar por data e hora
+                upcomingAppointments.sort((a, b) => {
+                    if (a.date === b.date) {
+                        return (a.time || '').localeCompare(b.time || '');
+                    }
+                    return a.date.localeCompare(b.date);
+                });
+
+                // Limitar a 6 agendamentos
+                const displayAppointments = upcomingAppointments.slice(0, 6);
+
+                const appointmentsList = document.getElementById('upcomingAppointments');
+                appointmentsList.innerHTML = '';
+
+                if (displayAppointments.length === 0) {
+                    appointmentsList.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-calendar-plus"></i>
+                            <p>Nenhum agendamento futuro encontrado</p>
+                            <small>Clique em "Novo Agendamento" para começar</small>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Exibir agendamentos
+                displayAppointments.forEach(appointment => {
+                    // Formatar data
+                    const date = new Date(appointment.date);
+                    const isToday = appointment.date === today;
+                    const formattedDate = isToday ? 'HOJE' : date.toLocaleDateString('pt-BR');
+
+                    // Determinar classe de status
+                    let statusClass = 'status-agendado';
+                    if (appointment.status === 'Confirmado') statusClass = 'status-confirmado';
+                    else if (appointment.status === 'Concluído') statusClass = 'status-concluido';
+                    else if (appointment.status === 'Cancelado') statusClass = 'status-cancelado';
+
+                    // Criar elemento do agendamento
+                    const appointmentElement = document.createElement('div');
+                    appointmentElement.className = 'appointment-item';
+                    appointmentElement.innerHTML = `
+                        <div class="appointment-info">
+                            <h4>${appointment.clientName}</h4>
+                            <div class="appointment-meta">
+                                <span><i class="fas fa-scissors"></i> ${appointment.serviceName}</span>
+                                <span><i class="fas fa-user-tie"></i> ${appointment.barber || 'Sem barbeiro'}</span>
+                                <span><i class="fas fa-calendar"></i> ${formattedDate}</span>
+                                <span><i class="fas fa-clock"></i> ${appointment.time || ''}</span>
+                            </div>
+                        </div>
+                        <div class="appointment-status ${statusClass}">
+                            <i class="fas fa-${appointment.status === 'Confirmado' ? 'check-circle' : 'calendar'}"></i>
+                            ${appointment.status || 'Agendado'}
+                        </div>
+                    `;
+
+                    appointmentsList.appendChild(appointmentElement);
+                });
+
+            } catch (error) {
+                console.error('❌ Erro ao carregar próximos agendamentos:', error);
+                document.getElementById('upcomingAppointments').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Erro ao carregar agendamentos</p>
+                        <small>Verifique sua conexão com a internet</small>
+                    </div>
+                `;
+            }
+        }
+
+        // Carregar desempenho dos barbeiros
+        async function loadBarberPerformance(allAppointmentsSnapshot) {
+            try {
+                const barberPerformance = document.getElementById('barberPerformance');
+
+                // Mês atual
+                const firstDay = new Date();
+                firstDay.setDate(1);
+                firstDay.setHours(0, 0, 0, 0);
+
+                const lastDay = new Date(firstDay);
+                lastDay.setMonth(lastDay.getMonth() + 1);
+                lastDay.setDate(0);
+                lastDay.setHours(23, 59, 59, 999);
+
+                // Obter todos os barbeiros do sistema
+                const barbers = ['Pedro', 'Murilo']; // Lista de barbeiros
+
+                // Obter todos os serviços para calcular valores
+                const servicesSnapshot = await db.collection('services').get();
+                const servicesMap = new Map();
+                servicesSnapshot.forEach(doc => {
+                    servicesMap.set(doc.id, doc.data());
+                });
+
+                // Inicializar estatísticas dos barbeiros
+                const barberStats = {};
+                barbers.forEach(barber => {
+                    barberStats[barber] = {
+                        totalAppointments: 0,
+                        completedAppointments: 0,
+                        revenue: 0,
+                        cancellations: 0,
+                        averageRating: 4.5 // Valor padrão
+                    };
+                });
+
+                // Processar todos os agendamentos para calcular estatísticas
+                for (const doc of allAppointmentsSnapshot.docs) {
+                    const appointment = doc.data();
+                    const barber = appointment.barber;
+
+                    if (!barber || !barbers.includes(barber)) continue;
+
+                    const appDate = new Date(appointment.date);
+                    const isThisMonth = appDate >= firstDay && appDate <= lastDay;
+
+                    if (!isThisMonth) continue;
+
+                    barberStats[barber].totalAppointments++;
+
+                    if (appointment.status === 'Concluído') {
+                        barberStats[barber].completedAppointments++;
+
+                        // Calcular receita
+                        if (appointment.serviceId && servicesMap.has(appointment.serviceId)) {
+                            const service = servicesMap.get(appointment.serviceId);
+                            barberStats[barber].revenue += service.price || 0;
+                        }
+                    } else if (appointment.status === 'Cancelado') {
+                        barberStats[barber].cancellations++;
+                    }
+                }
+
+                // Calcular métricas
+                barbers.forEach(barber => {
+                    const stats = barberStats[barber];
+                    stats.completionRate = stats.totalAppointments > 0
+                        ? Math.round((stats.completedAppointments / stats.totalAppointments) * 100)
+                        : 0;
+                    stats.cancellationRate = stats.totalAppointments > 0
+                        ? Math.round((stats.cancellations / stats.totalAppointments) * 100)
+                        : 0;
+                });
+
+                // Exibir desempenho dos barbeiros
+                barberPerformance.innerHTML = '';
+
+                if (barbers.length === 0) {
+                    barberPerformance.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-user-tie"></i>
+                            <p>Nenhum barbeiro cadastrado</p>
+                            <small>Cadastre barbeiros no sistema</small>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Criar cards para cada barbeiro
+                barbers.forEach(barber => {
+                    const stats = barberStats[barber];
+
+                    // Determinar cor baseada no desempenho
+                    let performanceColor = '#28a745'; // Verde para bom desempenho
+                    let performanceIcon = 'fa-star';
+                    let performanceText = 'Excelente';
+
+                    if (stats.completionRate < 70) {
+                        performanceColor = '#ffc107'; // Amarelo para desempenho médio
+                        performanceIcon = 'fa-chart-line';
+                        performanceText = 'Bom';
+                    }
+                    if (stats.completionRate < 50) {
+                        performanceColor = '#dc3545'; // Vermelho para baixo desempenho
+                        performanceIcon = 'fa-exclamation-triangle';
+                        performanceText = 'Precisa melhorar';
+                    }
+
+                    // Determinar ícone baseado no nome do barbeiro
+                    let barberIcon = 'fa-user-tie';
+                    if (barber.includes('Pedro')) barberIcon = 'fa-crown';
+                    if (barber.includes('Murilo')) barberIcon = 'fa-award';
+
+                    const barberCard = document.createElement('div');
+                    barberCard.className = 'barber-card';
+                    barberCard.style.cssText = `
+                        background: white;
+                        padding: 20px;
+                        border-radius: 12px;
+                        margin-bottom: 15px;
+                        border-left: 5px solid ${performanceColor};
+                        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+                        display: grid;
+                        grid-template-columns: auto 1fr auto;
+                        gap: 20px;
+                        align-items: center;
+                    `;
+
+                    barberCard.innerHTML = `
+                        <div style="text-align: center;">
+                            <i class="fas ${barberIcon}" style="font-size: 2.5rem; color: #000;"></i>
+                            <div style="font-weight: bold; margin-top: 5px;">${barber}</div>
+                        </div>
+                        
+                        <div>
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                                <div>
+                                    <div style="font-size: 0.9rem; color: #666;">Total Atendimentos</div>
+                                    <div style="font-size: 1.4rem; font-weight: bold;">${stats.totalAppointments}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.9rem; color: #666;">Taxa de Conclusão</div>
+                                    <div style="font-size: 1.4rem; font-weight: bold; color: ${stats.completionRate >= 70 ? '#28a745' : stats.completionRate >= 50 ? '#ffc107' : '#dc3545'}">
+                                        ${stats.completionRate}%
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.9rem; color: #666;">Receita</div>
+                                    <div style="font-size: 1.4rem; font-weight: bold; color: #28a745;">
+                                        R$ ${stats.revenue.toFixed(2).replace('.', ',')}
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.9rem; color: #666;">Cancelamentos</div>
+                                    <div style="font-size: 1.4rem; font-weight: bold; color: #dc3545;">
+                                        ${stats.cancellations}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="text-align: center; min-width: 120px;">
+                            <div style="font-size: 0.9rem; color: #666;">Desempenho</div>
+                            <div style="font-size: 1.8rem; margin: 5px 0;">
+                                <i class="fas ${performanceIcon}" style="color: ${performanceColor};"></i>
+                            </div>
+                            <div style="font-weight: bold; color: ${performanceColor};">${performanceText}</div>
+                        </div>
+                    `;
+
+                    barberPerformance.appendChild(barberCard);
+                });
+
+            } catch (error) {
+                console.error('❌ Erro ao carregar desempenho dos barbeiros:', error);
+                document.getElementById('barberPerformance').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Erro ao carregar desempenho</p>
+                        <small>${error.message}</small>
+                    </div>
+                `;
+            }
+        }
+
+        // Função de logout
+        function logout() {
+            if (confirm('Deseja realmente sair do sistema?')) {
+                if (auth && auth.currentUser) {
+                    auth.signOut().then(() => {
+                        window.location.href = 'login.html';
+                    }).catch(error => {
+                        console.error('Erro no logout:', error);
+                        window.location.href = 'login.html';
+                    });
+                } else {
+                    window.location.href = 'login.html';
+                }
+            }
+        }
+
+        // Inicializar quando a página carregar
+        document.addEventListener('DOMContentLoaded', function () {
+            // Ano atual no rodapé
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+            // Inicializar Firebase
+            initializeFirebase();
+
+            // Atualizar data e hora a cada segundo
+            updateDateTime();
+            setInterval(updateDateTime, 1000);
+
+            // Atualizar dados do dashboard a cada 2 minutos
+            setInterval(() => {
+                if (currentUser) {
+                    console.log('🔄 Atualizando dashboard...');
+                    loadDashboardData();
+                }
+            }, 120000);
+
+            // Adicionar animação de fade-in
+            const elements = document.querySelectorAll('.fade-in');
+            elements.forEach((el, index) => {
+                el.style.animationDelay = `${index * 0.1}s`;
+            });
+        });
+
+        // Exportar funções para escopo global
+        window.logout = logout;
+        window.loadDashboardData = loadDashboardData;
+
+    </script>
+
+    <script>
+// MENU HAMBÚRGUER VERSÃO DEFINITIVA - INDEX/DASHBOARD
+console.log('🚀 Inicializando menu hambúrguer - Dashboard...');
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('📱 DOM carregado - Configurando menu...');
+    
+    // 1. IDENTIFICAR ELEMENTOS
+    const btn = document.getElementById('menuToggle');
+    const overlay = document.getElementById('menuOverlay');
+    const menu = document.querySelector('.navbar');
+    
+    // Verificar se os elementos existem
+    if (!btn) {
+        console.error('❌ Botão menuToggle não encontrado!');
+        return;
+    }
+    
+    if (!menu) {
+        console.error('❌ Menu navbar não encontrado!');
+        return;
+    }
+    
+    console.log('✅ Elementos encontrados:', {btn, menu, overlay});
+    
+    // 2. GARANTIR QUE OS ELEMENTOS ESTÃO VISÍVEIS
+    btn.style.display = 'block';
+    btn.style.visibility = 'visible';
+    btn.style.opacity = '1';
+    
+    // 3. CONFIGURAÇÃO INICIAL DE ESTILOS (APENAS PARA MOBILE)
+    const configurarEstilosMobile = () => {
+        // Menu lateral para mobile
+        menu.style.position = 'fixed';
+        menu.style.top = '0';
+        menu.style.left = '-280px'; // Fora da tela
+        menu.style.width = '280px';
+        menu.style.height = '100vh';
+        menu.style.background = '#111';
+        menu.style.zIndex = '1000';
+        menu.style.transition = 'left 0.3s ease';
+        menu.style.paddingTop = '80px';
+        menu.style.boxShadow = '2px 0 15px rgba(0,0,0,0.3)';
+        menu.style.overflowY = 'auto';
+        
+        // Overlay
+        if (overlay) {
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100%';
+            overlay.style.height = '100%';
+            overlay.style.background = 'rgba(0,0,0,0.7)';
+            overlay.style.zIndex = '999';
+            overlay.style.display = 'none';
+            overlay.style.opacity = '0';
+            overlay.style.transition = 'opacity 0.3s ease';
+        }
+        
+        // Botão hambúrguer
+        btn.style.background = '#333';
+        btn.style.border = 'none';
+        btn.style.color = 'white';
+        btn.style.fontSize = '1.5rem';
+        btn.style.cursor = 'pointer';
+        btn.style.width = '44px';
+        btn.style.height = '44px';
+        btn.style.borderRadius = '4px';
+        btn.style.display = 'flex';
+        btn.style.alignItems = 'center';
+        btn.style.justifyContent = 'center';
+        btn.style.position = 'absolute';
+        btn.style.right = '20px';
+        btn.style.top = '50%';
+        btn.style.transform = 'translateY(-50%)';
+        btn.style.zIndex = '1001';
+        btn.style.transition = 'background 0.3s';
+    };
+    
+    const configurarEstilosDesktop = () => {
+        // Resetar estilos para desktop
+        menu.style.position = '';
+        menu.style.top = '';
+        menu.style.left = '';
+        menu.style.width = '';
+        menu.style.height = '';
+        menu.style.background = '';
+        menu.style.zIndex = '';
+        menu.style.transition = '';
+        menu.style.paddingTop = '';
+        menu.style.boxShadow = '';
+        menu.style.overflowY = '';
+        
+        if (overlay) {
+            overlay.style.display = 'none';
+        }
+        
+        btn.style.display = 'none'; // Esconder botão em desktop
+    };
+    
+    // 4. CONTROLE DE ESTADO
+    let menuAberto = false;
+    
+    // 5. FUNÇÕES PRINCIPAIS
+    function abrirMenu() {
+        console.log('📱 ABRINDO menu lateral');
+        menu.style.left = '0px';
+        menuAberto = true;
+        
+        if (overlay) {
+            overlay.style.display = 'block';
+            setTimeout(() => {
+                overlay.style.opacity = '1';
+            }, 10);
+        }
+        
+        btn.querySelector('i').className = 'fas fa-times';
+        btn.style.background = '#555';
+        console.log('✅ Menu ABERTO');
+    }
+    
+    function fecharMenu() {
+        console.log('🔒 FECHANDO menu lateral');
+        menu.style.left = '-280px';
+        menuAberto = false;
+        
+        if (overlay) {
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 300);
+        }
+        
+        btn.querySelector('i').className = 'fas fa-bars';
+        btn.style.background = '#333';
+        console.log('✅ Menu FECHADO');
+    }
+    
+    function toggleMenu() {
+        console.log('🎯 Toggle menu - Estado atual:', menuAberto ? 'ABERTO' : 'FECHADO');
+        
+        // Forçar foco visual no botão
+        btn.style.transform = 'translateY(-50%) scale(1.1)';
+        setTimeout(() => {
+            btn.style.transform = 'translateY(-50%) scale(1)';
+        }, 150);
+        
+        if (menuAberto) {
+            fecharMenu();
+        } else {
+            abrirMenu();
+        }
+    }
+    
+    // 6. VERIFICAÇÃO DE RESPONSIVIDADE
+    function verificarTamanhoTela() {
+        const largura = window.innerWidth;
+        console.log(`📐 Largura da tela: ${largura}px`);
+        
+        if (largura <= 768) {
+            // MODO MOBILE
+            console.log('📱 Modo MOBILE ativado');
+            configurarEstilosMobile();
+            btn.style.display = 'flex';
+            
+            // Garantir que o menu está fechado
+            if (menuAberto) {
+                menu.style.left = '0px';
+            } else {
+                menu.style.left = '-280px';
+            }
+            
+        } else {
+            // MODO DESKTOP
+            console.log('🖥️ Modo DESKTOP ativado');
+            configurarEstilosDesktop();
+            
+            // Fechar menu se estiver aberto
+            if (menuAberto) {
+                fecharMenu();
+            }
+        }
+    }
+    
+    // 7. EVENTOS PRINCIPAIS
+    
+    // Clique no botão hambúrguer
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('👉 Botão hambúrguer CLICADO fisicamente');
+        
+        // Verificar se estamos em mobile
+        if (window.innerWidth <= 768) {
+            toggleMenu();
+        }
+    });
+    
+    // Clique no overlay para fechar
+    if (overlay) {
+        overlay.addEventListener('click', function(e) {
+            e.stopPropagation();
+            console.log('👆 Overlay clicado');
+            fecharMenu();
+        });
+    }
+    
+    // Clique nos links para fechar
+    document.querySelectorAll('.navbar a').forEach(link => {
+        link.addEventListener('click', function(e) {
+            console.log('🔗 Link de navegação clicado:', this.textContent);
+            
+            // Apenas fechar em mobile
+            if (window.innerWidth <= 768 && menuAberto) {
+                fecharMenu();
+            }
+        });
+    });
+    
+    // Fechar com tecla ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && menuAberto) {
+            console.log('ESC pressionado');
+            fecharMenu();
+        }
+    });
+    
+    // Fechar ao clicar fora do menu (em mobile)
+    document.addEventListener('click', function(e) {
+        if (menuAberto && 
+            window.innerWidth <= 768 &&
+            !menu.contains(e.target) && 
+            !btn.contains(e.target) &&
+            overlay &&
+            !overlay.contains(e.target)) {
+            console.log('👆 Clicou fora do menu em mobile');
+            fecharMenu();
+        }
+    });
+    
+    // 8. INICIALIZAÇÃO
+    
+    // Aplicar responsividade inicial
+    verificarTamanhoTela();
+    
+    // Atualizar ao redimensionar
+    window.addEventListener('resize', function() {
+        verificarTamanhoTela();
+    });
+    
+    // Forçar verificação após 100ms (garantir que tudo carregou)
+    setTimeout(() => {
+        verificarTamanhoTela();
+        console.log('✅ Menu hambúrguer completamente inicializado');
+    }, 100);
+    
+    // 9. DEBUG VISUAL (remover depois de testar)
+    console.log('=== DEBUG MENU INDEX ===');
+    console.log('Botão:', btn);
+    console.log('Menu:', menu);
+    console.log('Overlay:', overlay);
+    console.log('Body:', document.body);
+    console.log('=======================');
+});
+
+// 10. ADICIONAR ESTILOS DE EMERGÊNCIA SE PRECISAR
+const style = document.createElement('style');
+style.textContent = `
+    /* Estilos de emergência para o menu */
+    @media (max-width: 768px) {
+        .menu-toggle {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            z-index: 1001 !important;
+        }
+        
+        .navbar.active {
+            left: 0 !important;
+        }
+        
+        .menu-overlay.active {
+            display: block !important;
+            opacity: 1 !important;
+        }
+    }
+`;
+document.head.appendChild(style);
+
+console.log('🎉 Script do menu hambúrguer carregado com sucesso!');
+</script>
+
+
+</body>
+
+</html>

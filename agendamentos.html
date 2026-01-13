@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendamentos - BarberFlow</title>
+    <link rel="stylesheet" href="estilo.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo-container">
+                <div class="logo">
+                    <i class="fas fa-cut"></i>
+                    <h1>BarberFlow</h1>
+                </div>
+
+                <!-- BOTÃO HAMBÚRGUER -->
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <div class="user-info" id="userInfo">
+                    <span id="userName">Carregando...</span>
+                    <button onclick="logout()" class="btn-logout">Sair</button>
+                </div>
+            </div>
+
+            <!-- OVERLAY DO MENU -->
+            <div class="menu-overlay" id="menuOverlay"></div>
+
+            <!-- Navegação (Agendamentos ativo) -->
+            <nav class="navbar">
+                <ul>
+                    <li><a href="index.html"><i class="fas fa-home"></i> Dashboard</a></li>
+                    <li><a href="agendamentos.html" class="active"><i class="fas fa-calendar-alt"></i> Agendamentos</a>
+                    </li>
+                    <li><a href="clientes.html"><i class="fas fa-users"></i> Clientes</a></li>
+                    <li><a href="servicos.html"><i class="fas fa-concierge-bell"></i> Serviços</a></li>
+                    <li><a href="financeiro.html"><i class="fas fa-chart-line"></i> Financeiro</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main class="main-content">
+            <div class="section">
+                <div class="calendar-header">
+                    <h2><i class="fas fa-calendar-alt"></i> Agenda da Barbearia</h2>
+                    <div class="calendar-controls">
+                        <button id="prevWeek" class="btn-calendar"><i class="fas fa-chevron-left"></i></button>
+                        <span id="currentWeekRange" class="week-range">Esta Semana</span>
+                        <button id="nextWeek" class="btn-calendar"><i class="fas fa-chevron-right"></i></button>
+                        <button id="todayBtn" class="btn btn-secondary">Hoje</button>
+                        <button id="newAppointmentBtn" class="btn btn-primary">
+                            <i class="fas fa-plus-circle"></i> Novo Agendamento
+                        </button>
+                    </div>
+                </div>
+
+                <div id="alertMessage" class="alert hidden"></div>
+
+                <!-- Formulário de novo agendamento -->
+                <div id="appointmentFormContainer" class="form-container hidden">
+                    <h3><i class="fas fa-calendar-plus"></i> Novo Agendamento</h3>
+
+                    <form id="appointmentForm">
+                        <div class="form-group">
+                            <label for="clientSelect">Cliente</label>
+                            <select id="clientSelect" class="form-control" required>
+                                <option value="">Selecione um cliente</option>
+                            </select>
+                            <small><a href="clientes.html?action=new">Cadastrar novo cliente</a></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="serviceSelect">Serviço</label>
+                            <select id="serviceSelect" class="form-control" required>
+                                <option value="">Selecione um serviço</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="barberSelect">Barbeiro</label>
+                            <select id="barberSelect" class="form-control" required>
+                                <option value="">Selecione um barbeiro</option>
+                                <option value="Pedro">Pedro</option>
+                                <option value="Murilo">Murilo</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="appointmentDate">Data</label>
+                            <input type="date" id="appointmentDate" class="form-control" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="appointmentTime">Hora</label>
+                            <input type="time" id="appointmentTime" class="form-control" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="appointmentStatus">Status</label>
+                            <select id="appointmentStatus" class="form-control">
+                                <option value="Agendado">Agendado</option>
+                                <option value="Confirmado">Confirmado</option>
+                                <option value="Concluído">Concluído</option>
+                                <option value="Cancelado">Cancelado</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="appointmentNotes">Observações</label>
+                            <textarea id="appointmentNotes" class="form-control" rows="3"></textarea>
+                        </div>
+
+                        <div class="form-group" style="display: flex; gap: 10px;">
+                            <button type="submit" class="btn btn-primary">Salvar Agendamento</button>
+                            <button type="button" id="cancelFormBtn" class="btn btn-secondary">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- FILTRO DE BARBEIRO -->
+                <div class="section mt-20"
+                    style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; display: block;">
+                    <h4><i class="fas fa-filter"></i> Filtros</h4>
+                    <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <strong>Filtrar por Barbeiro:</strong>
+                            <select class="filter-select" id="barberFilter" style="min-width: 200px;">
+                                <option value="">Todos os Barbeiros</option>
+                                <option value="Pedro">Apenas Pedro</option>
+                                <option value="Murilo">Apenas Murilo</option>
+                            </select>
+                        </div>
+                        <button id="clearFiltersBtn" class="btn btn-secondary" style="padding: 8px 15px;">
+                            <i class="fas fa-times"></i> Limpar Filtros
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Agenda Visual -->
+                <div class="calendar-container">
+                    <div class="calendar-week-header">
+                        <div class="calendar-time-column">Horário</div>
+                        <div class="calendar-day">Segunda</div>
+                        <div class="calendar-day">Terça</div>
+                        <div class="calendar-day">Quarta</div>
+                        <div class="calendar-day">Quinta</div>
+                        <div class="calendar-day">Sexta</div>
+                        <div class="calendar-day">Sábado</div>
+                        <div class="calendar-day">Domingo</div>
+                    </div>
+
+                    <div class="calendar-week-body" id="calendarWeekBody">
+                        <!-- Horários serão gerados via JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Lista de agendamentos (modo alternativo) -->
+                <div class="section mt-30">
+                    <h3><i class="fas fa-list"></i> Lista de Agendamentos</h3>
+
+                    <div class="appointments-filter">
+                        <div class="filter-options">
+                            <button class="filter-btn active" data-filter="all">Todos</button>
+                            <button class="filter-btn" data-filter="today">Hoje</button>
+                            <button class="filter-btn" data-filter="week">Esta Semana</button>
+                            <button class="filter-btn" data-filter="confirmed">Confirmados</button>
+                            <button class="filter-btn" data-filter="pending">Pendentes</button>
+                            <button class="filter-btn" data-filter="completed">Concluídos</button>
+                            <button class="filter-btn" data-filter="canceled">Cancelados</button>
+                        </div>
+
+                        <div class="view-options">
+                            <button class="view-btn active" data-view="calendar"><i class="fas fa-calendar-alt"></i>
+                                Agenda</button>
+                            <button class="view-btn" data-view="list"><i class="fas fa-list"></i> Lista</button>
+                        </div>
+                    </div>
+
+                    <div class="appointments-list" id="appointmentsList">
+                        <!-- Agendamentos carregados via JS -->
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>BarberFlow &copy; <span id="currentYear"></span> - Sistema de Gerenciamento</p>
+        </footer>
+    </div>
+
+    <!-- Modal para detalhes do agendamento -->
+    <div id="appointmentModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-calendar-check"></i> Detalhes do Agendamento</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Conteúdo carregado via JS -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="editSelectedAppointment()">Editar</button>
+                <button class="btn btn-secondary" onclick="closeModal()">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts NA ORDEM CORRETA -->
+    <script src="firebase-config.js"></script>
+    <script src="auth.js"></script>
+    <script src="agendamentos.js"></script>
+
+    <script>
+        // Função logout global
+        function logout() {
+            if (window.logout) {
+                window.logout();
+            } else {
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Ano atual no rodapé
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+    </script>
+
+    <script>
+    // MENU HAMBÚRGUER VERSÃO DEFINITIVA - AGENDAMENTOS
+    console.log('🚀 Inicializando menu hambúrguer - Agendamentos...');
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('📱 DOM carregado - Configurando menu...');
+        
+        const btn = document.getElementById('menuToggle');
+        const overlay = document.getElementById('menuOverlay');
+        const menu = document.querySelector('.navbar');
+        
+        if (!btn || !menu) {
+            console.error('❌ Elementos essenciais não encontrados!');
+            return;
+        }
+        
+        console.log('✅ Elementos encontrados:', {btn, menu, overlay});
+        
+        // ===== 1. FORÇAR ESTILOS VIA JAVASCRIPT =====
+        
+        // Menu lateral
+        menu.style.position = 'fixed';
+        menu.style.top = '0';
+        menu.style.left = '-100%';
+        menu.style.width = '280px';
+        menu.style.height = '100vh';
+        menu.style.background = '#111';
+        menu.style.zIndex = '1000';
+        menu.style.transition = 'left 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+        menu.style.paddingTop = '80px';
+        menu.style.boxShadow = '2px 0 15px rgba(0,0,0,0.3)';
+        menu.style.overflowY = 'auto';
+        menu.style.display = 'block';
+        
+        // Overlay
+        if (overlay) {
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100%';
+            overlay.style.height = '100%';
+            overlay.style.background = 'rgba(0,0,0,0.7)';
+            overlay.style.zIndex = '999';
+            overlay.style.display = 'none';
+            overlay.style.opacity = '0';
+            overlay.style.transition = 'opacity 0.3s ease';
+        }
+        
+        // Botão hambúrguer
+        btn.style.background = '#333';
+        btn.style.border = 'none';
+        btn.style.color = 'white';
+        btn.style.fontSize = '1.5rem';
+        btn.style.cursor = 'pointer';
+        btn.style.width = '44px';
+        btn.style.height = '44px';
+        btn.style.borderRadius = '4px';
+        btn.style.display = 'flex';
+        btn.style.alignItems = 'center';
+        btn.style.justifyContent = 'center';
+        btn.style.position = 'absolute';
+        btn.style.right = '20px';
+        btn.style.top = '50%';
+        btn.style.transform = 'translateY(-50%)';
+        btn.style.zIndex = '1001';
+        btn.style.transition = 'background 0.3s';
+        
+        // ===== 2. CONTROLE DE ESTADO =====
+        let menuAberto = false;
+        
+        // ===== 3. FUNÇÕES PRINCIPAIS =====
+        
+        function abrirMenu() {
+            console.log('📱 ABRINDO menu lateral');
+            menu.style.left = '0px';
+            menuAberto = true;
+            
+            if (overlay) {
+                overlay.style.display = 'block';
+                setTimeout(() => {
+                    overlay.style.opacity = '1';
+                }, 10);
+            }
+            
+            btn.querySelector('i').className = 'fas fa-times';
+            console.log('✅ Menu ABERTO - left:', menu.style.left);
+        }
+        
+        function fecharMenu() {
+            console.log('🔒 FECHANDO menu lateral');
+            menu.style.left = '-100%';
+            menuAberto = false;
+            
+            if (overlay) {
+                overlay.style.opacity = '0';
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                }, 300);
+            }
+            
+            btn.querySelector('i').className = 'fas fa-bars';
+            console.log('✅ Menu FECHADO - left:', menu.style.left);
+        }
+        
+        function toggleMenu() {
+            console.log('🎯 Toggle menu - Estado atual:', menuAberto ? 'ABERTO' : 'FECHADO');
+            if (menuAberto) {
+                fecharMenu();
+            } else {
+                abrirMenu();
+            }
+        }
+        
+        // ===== 4. EVENTOS =====
+        
+        // Clique no botão hambúrguer
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('👉 Botão hambúrguer CLICADO fisicamente');
+            toggleMenu();
+        });
+        
+        // Clique no overlay para fechar
+        if (overlay) {
+            overlay.addEventListener('click', function(e) {
+                e.stopPropagation();
+                console.log('👆 Overlay clicado');
+                fecharMenu();
+            });
+        }
+        
+        // Clique nos links para fechar
+        document.querySelectorAll('.navbar a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                console.log('🔗 Link de navegação clicado:', this.textContent);
+                fecharMenu();
+            });
+        });
+        
+        // Fechar com tecla ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && menuAberto) {
+                console.log('ESC pressionado');
+                fecharMenu();
+            }
+        });
+        
+        // Fechar ao clicar fora do menu (em mobile)
+        document.addEventListener('click', function(e) {
+            if (menuAberto && 
+                !menu.contains(e.target) && 
+                !btn.contains(e.target) &&
+                window.innerWidth <= 768) {
+                console.log('👆 Clicou fora do menu em mobile');
+                fecharMenu();
+            }
+        });
+        
+        // ===== 5. CONTROLE RESPONSIVO =====
+        
+        function atualizarResponsividade() {
+            const largura = window.innerWidth;
+            console.log('📐 Largura da tela:', largura, 'px');
+            
+            if (largura <= 768) {
+                // MODO MOBILE
+                btn.style.display = 'flex';
+                console.log('📱 Modo mobile - Botão visível');
+                
+                // Forçar menu lateral
+                menu.style.position = 'fixed';
+                menu.style.left = menuAberto ? '0px' : '-100%';
+                
+            } else {
+                // MODO DESKTOP
+                btn.style.display = 'none';
+                console.log('💻 Modo desktop - Botão oculto');
+                
+                // Resetar menu para layout horizontal
+                menu.style.position = 'static';
+                menu.style.left = 'auto';
+                menu.style.width = 'auto';
+                menu.style.height = 'auto';
+                menu.style.paddingTop = '0';
+                menu.style.boxShadow = 'none';
+                menu.style.background = '#111';
+                
+                // Fechar menu se estiver aberto
+                if (menuAberto) {
+                    fecharMenu();
+                }
+            }
+        }
+        
+        // Aplicar responsividade inicial
+        atualizarResponsividade();
+        
+        // Atualizar ao redimensionar
+        window.addEventListener('resize', function() {
+            console.log('🔄 Janela redimensionada');
+            atualizarResponsividade();
+        });
+        
+        // ===== 6. TESTE AUTOMÁTICO =====
+        
+        setTimeout(function() {
+            console.log('🧪 TESTE DE FUNCIONALIDADE DO MENU');
+            console.log('- Estado inicial:', menuAberto ? 'ABERTO' : 'FECHADO');
+            console.log('- Largura atual:', window.innerWidth, 'px');
+            console.log('- Botão visível?', window.getComputedStyle(btn).display !== 'none');
+            console.log('- Posição do menu:', menu.style.left);
+            
+            // Teste automático apenas em mobile
+            if (window.innerWidth <= 768) {
+                console.log('🧪 Executando teste automático em mobile...');
+                console.log('  1. Abrindo menu...');
+                abrirMenu();
+                
+                setTimeout(function() {
+                    console.log('  2. Fechando menu após 2 segundos...');
+                    fecharMenu();
+                    
+                    setTimeout(function() {
+                        console.log('  3. Teste concluído! ✅');
+                        console.log('🎉 Menu hambúrguer FUNCIONANDO CORRETAMENTE!');
+                    }, 500);
+                }, 2000);
+            }
+        }, 1000);
+        
+        console.log('🎉 Menu hambúrguer inicializado com sucesso!');
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Bolanos</title>
+    <link rel="stylesheet" href="estilo.css">
+</head>
+<body class="login-container">
+    <div class="login-box">
+        <h1><i class="fas fa-cut"></i> Bolanos Barbershop</h1>
+        <h3>Sistema de Gerenciamento</h3>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Email:</label>
+                <input type="email" id="email" class="form-control" value="admin@bolanos.com">
+            </div>
+            
+            <div class="form-group">
+                <label>Senha:</label>
+                <input type="password" id="password" class="form-control" value="123456">
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Entrar</button>
+            <p><small>Use qualquer email/senha para criar conta</small></p>
+        </form>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    
+    <script>
+        // Configuração direta no login
+        const firebaseConfig = {
+            apiKey: "AIzaSyDIqJpw0EnBnkZWvXIbMQIxai394lsqAKA",
+            authDomain: "barbearia-84d78.firebaseapp.com",
+            projectId: "barbearia-84d78",
+            messagingSenderId: "42251761510",
+            appId: "1:42251761510:web:03e036a25931a461c43aa7"
+        };
+        
+        // Inicializar
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        
+        // Login
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            firebase.auth().signInWithEmailAndPassword(email, password)
+                .then(() => {
+                    window.location.href = 'index.html';
+                })
+                .catch(error => {
+                    // Se erro, tentar criar conta
+                    firebase.auth().createUserWithEmailAndPassword(email, password)
+                        .then(() => {
+                            window.location.href = 'index.html';
+                        })
+                        .catch(err => {
+                            alert('Erro: ' + err.message);
+                        });
+                });
+        });
+    </script>
+</body>
+</html>

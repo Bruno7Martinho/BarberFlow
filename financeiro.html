@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financeiro - BarberFlow</title>
+    <link rel="stylesheet" href="estilo.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo-container">
+                <div class="logo">
+                    <i class="fas fa-cut"></i>
+                    <h1>BarberFlow</h1>
+                </div>
+
+                <!-- BOTÃO HAMBÚRGUER -->
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <div class="user-info" id="userInfo">
+                    <span id="userName">Carregando...</span>
+                    <button onclick="logout()" class="btn-logout">Sair</button>
+                </div>
+            </div>
+
+            <!-- OVERLAY DO MENU -->
+            <div class="menu-overlay" id="menuOverlay"></div>
+
+            <!-- Navegação CORRIGIDA (Financeiro ativo) -->
+            <nav class="navbar">
+                <ul>
+                    <li><a href="index.html"><i class="fas fa-home"></i> Dashboard</a></li>
+                    <li><a href="agendamentos.html"><i class="fas fa-calendar-alt"></i> Agendamentos</a></li>
+                    <li><a href="clientes.html"><i class="fas fa-users"></i> Clientes</a></li>
+                    <li><a href="servicos.html"><i class="fas fa-concierge-bell"></i> Serviços</a></li>
+                    <li><a href="financeiro.html" class="active"><i class="fas fa-chart-line"></i> Financeiro</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main class="main-content">
+            <div class="section">
+                <h2><i class="fas fa-chart-line"></i> Dashboard Financeiro</h2>
+
+                <!-- Cards em grid responsivo -->
+                <div class="dashboard-cards">
+                    <div class="card">
+                        <div class="card-icon" style="background-color: #333;">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Receita do Mês</h3>
+                            <p class="card-value" id="monthRevenue">R$ 0,00</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-icon" style="background-color: #555;">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Serviços Realizados</h3>
+                            <p class="card-value" id="servicesCompleted">0</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-icon" style="background-color: #777;">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Média por Cliente</h3>
+                            <p class="card-value" id="averagePerClient">R$ 0,00</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-icon" style="background-color: #999;">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Serviço Mais Popular</h3>
+                            <p class="card-value" id="mostPopularService">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filtros responsivos -->
+                <div class="filters mb-20">
+                    <div class="filters-container" style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                        <div class="period-select">
+                            <label>Período:</label>
+                            <select id="periodSelect" class="form-control" style="width: 100%; min-width: 180px;">
+                                <option value="month">Este Mês</option>
+                                <option value="lastMonth">Mês Anterior</option>
+                                <option value="week">Esta Semana</option>
+                                <option value="year">Este Ano</option>
+                                <option value="custom">Personalizado</option>
+                            </select>
+                        </div>
+
+                        <div id="customPeriod" class="custom-period" style="display: none; flex-wrap: wrap; gap: 10px; align-items: center;">
+                            <div class="date-input">
+                                <label>De:</label>
+                                <input type="date" id="startDate" class="form-control">
+                            </div>
+                            <div class="date-input">
+                                <label>Até:</label>
+                                <input type="date" id="endDate" class="form-control">
+                            </div>
+                            <button id="applyCustomDate" class="btn btn-secondary">Aplicar</button>
+                        </div>
+
+                        <!-- BOTÃO DE EXPORTAÇÃO REMOVIDO AQUI -->
+                    </div>
+                </div>
+
+                <!-- Gráficos responsivos -->
+                <div class="charts-container">
+                    <div class="chart-box">
+                        <h3><i class="fas fa-chart-bar"></i> Receita por Dia</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-box">
+                        <h3><i class="fas fa-chart-pie"></i> Serviços Mais Realizados</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="servicesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Relatório Detalhado -->
+                <div class="section">
+                    <h3><i class="fas fa-list"></i> Relatório de Serviços</h3>
+
+                    <div class="table-responsive-container">
+                        <div class="table-container">
+                            <table id="financialReportTable">
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Cliente</th>
+                                        <th>Serviço</th>
+                                        <th>Barbeiro</th>
+                                        <th>Valor</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Dados carregados via JavaScript -->
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="4" style="text-align: right; font-weight: bold;">Total:</td>
+                                        <td id="totalRevenue" style="font-weight: bold;">R$ 0,00</td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resumo por Barbeiro -->
+                <div class="section">
+                    <h3><i class="fas fa-user-tie"></i> Desempenho por Barbeiro</h3>
+
+                    <div class="table-responsive-container">
+                        <div class="table-container">
+                            <table id="barberPerformanceTable">
+                                <thead>
+                                    <tr>
+                                        <th>Barbeiro</th>
+                                        <th>Serviços Realizados</th>
+                                        <th>Total Receita</th>
+                                        <th>Média por Serviço</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Dados carregados via JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>BarberFlow &copy; <span id="currentYear"></span> - Sistema de Gerenciamento</p>
+        </footer>
+    </div>
+
+    <!-- Scripts NA ORDEM CORRETA -->
+    <!-- 1. Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- 2. Configuração do Firebase -->
+    <script src="firebase-config.js"></script>
+    
+    <!-- 3. Autenticação -->
+    <script src="auth.js"></script>
+    
+    <!-- 4. Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- 5. Financeiro.js deve vir POR ÚLTIMO pois contém toda a lógica -->
+    <script src="financeiro.js"></script>
+
+    <script>
+        // Ano atual no rodapé
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        // Função logout global
+        function logout() {
+            if (window.logout) {
+                window.logout();
+            } else {
+                window.location.href = 'login.html';
+            }
+        }
+    </script>
+
+    <script>
+    // MENU HAMBÚRGUER VERSÃO DEFINITIVA - FINANCEIRO
+    console.log('🚀 Inicializando menu hambúrguer - Financeiro...');
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('📱 DOM carregado - Configurando menu...');
+        
+        const btn = document.getElementById('menuToggle');
+        const overlay = document.getElementById('menuOverlay');
+        const menu = document.querySelector('.navbar');
+        
+        if (!btn || !menu) {
+            console.error('❌ Elementos essenciais não encontrados!');
+            return;
+        }
+        
+        console.log('✅ Elementos encontrados:', {btn, menu, overlay});
+        
+        // ===== 1. FORÇAR ESTILOS VIA JAVASCRIPT =====
+        
+        // Menu lateral
+        menu.style.position = 'fixed';
+        menu.style.top = '0';
+        menu.style.left = '-100%';
+        menu.style.width = '280px';
+        menu.style.height = '100vh';
+        menu.style.background = '#111';
+        menu.style.zIndex = '1000';
+        menu.style.transition = 'left 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+        menu.style.paddingTop = '80px';
+        menu.style.boxShadow = '2px 0 15px rgba(0,0,0,0.3)';
+        menu.style.overflowY = 'auto';
+        menu.style.display = 'block';
+        
+        // Overlay
+        if (overlay) {
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100%';
+            overlay.style.height = '100%';
+            overlay.style.background = 'rgba(0,0,0,0.7)';
+            overlay.style.zIndex = '999';
+            overlay.style.display = 'none';
+            overlay.style.opacity = '0';
+            overlay.style.transition = 'opacity 0.3s ease';
+        }
+        
+        // Botão hambúrguer
+        btn.style.background = '#333';
+        btn.style.border = 'none';
+        btn.style.color = 'white';
+        btn.style.fontSize = '1.5rem';
+        btn.style.cursor = 'pointer';
+        btn.style.width = '44px';
+        btn.style.height = '44px';
+        btn.style.borderRadius = '4px';
+        btn.style.display = 'flex';
+        btn.style.alignItems = 'center';
+        btn.style.justifyContent = 'center';
+        btn.style.position = 'absolute';
+        btn.style.right = '20px';
+        btn.style.top = '50%';
+        btn.style.transform = 'translateY(-50%)';
+        btn.style.zIndex = '1001';
+        btn.style.transition = 'background 0.3s';
+        
+        // ===== 2. CONTROLE DE ESTADO =====
+        let menuAberto = false;
+        
+        // ===== 3. FUNÇÕES PRINCIPAIS =====
+        
+        function abrirMenu() {
+            console.log('📱 ABRINDO menu lateral');
+            menu.style.left = '0px';
+            menuAberto = true;
+            
+            if (overlay) {
+                overlay.style.display = 'block';
+                setTimeout(() => {
+                    overlay.style.opacity = '1';
+                }, 10);
+            }
+            
+            btn.querySelector('i').className = 'fas fa-times';
+            console.log('✅ Menu ABERTO - left:', menu.style.left);
+        }
+        
+        function fecharMenu() {
+            console.log('🔒 FECHANDO menu lateral');
+            menu.style.left = '-100%';
+            menuAberto = false;
+            
+            if (overlay) {
+                overlay.style.opacity = '0';
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                }, 300);
+            }
+            
+            btn.querySelector('i').className = 'fas fa-bars';
+            console.log('✅ Menu FECHADO - left:', menu.style.left);
+        }
+        
+        function toggleMenu() {
+            console.log('🎯 Toggle menu - Estado atual:', menuAberto ? 'ABERTO' : 'FECHADO');
+            if (menuAberto) {
+                fecharMenu();
+            } else {
+                abrirMenu();
+            }
+        }
+        
+        // ===== 4. EVENTOS =====
+        
+        // Clique no botão hambúrguer
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('👉 Botão hambúrguer CLICADO fisicamente');
+            toggleMenu();
+        });
+        
+        // Clique no overlay para fechar
+        if (overlay) {
+            overlay.addEventListener('click', function(e) {
+                e.stopPropagation();
+                console.log('👆 Overlay clicado');
+                fecharMenu();
+            });
+        }
+        
+        // Clique nos links para fechar
+        document.querySelectorAll('.navbar a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                console.log('🔗 Link de navegação clicado:', this.textContent);
+                fecharMenu();
+            });
+        });
+        
+        // Fechar com tecla ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && menuAberto) {
+                console.log('ESC pressionado');
+                fecharMenu();
+            }
+        });
+        
+        // Fechar ao clicar fora do menu (em mobile)
+        document.addEventListener('click', function(e) {
+            if (menuAberto && 
+                !menu.contains(e.target) && 
+                !btn.contains(e.target) &&
+                window.innerWidth <= 768) {
+                console.log('👆 Clicou fora do menu em mobile');
+                fecharMenu();
+            }
+        });
+        
+        // ===== 5. CONTROLE RESPONSIVO =====
+        
+        function atualizarResponsividade() {
+            const largura = window.innerWidth;
+            
+            if (largura <= 768) {
+                // MODO MOBILE
+                btn.style.display = 'flex';
+                
+                // Forçar menu lateral
+                menu.style.position = 'fixed';
+                menu.style.left = menuAberto ? '0px' : '-100%';
+                
+            } else {
+                // MODO DESKTOP
+                btn.style.display = 'none';
+                
+                // Resetar menu para layout horizontal
+                menu.style.position = 'static';
+                menu.style.left = 'auto';
+                menu.style.width = 'auto';
+                menu.style.height = 'auto';
+                menu.style.paddingTop = '0';
+                menu.style.boxShadow = 'none';
+                menu.style.background = '#111';
+                
+                // Fechar menu se estiver aberto
+                if (menuAberto) {
+                    fecharMenu();
+                }
+            }
+        }
+        
+        // Aplicar responsividade inicial
+        atualizarResponsividade();
+        
+        // Atualizar ao redimensionar
+        window.addEventListener('resize', function() {
+            atualizarResponsividade();
+        });
+        
+        console.log('🎉 Menu hambúrguer inicializado com sucesso!');
+    });
+</script>
+
+<!-- ADICIONE ESTE CSS ESPECÍFICO PARA RESPONSIVIDADE DO FINANCEIRO -->
+<style>
+    /* ===== ESTILOS RESPONSIVOS ESPECÍFICOS PARA FINANCEIRO ===== */
+    
+    /* Cards responsivos */
+    .dashboard-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    /* Container dos filtros responsivo */
+    .filters-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        align-items: center;
+    }
+    
+    /* Período personalizado responsivo */
+    .custom-period {
+        display: none;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+    }
+    
+    .date-input {
+        min-width: 150px;
+    }
+    
+    /* Gráficos responsivos */
+    .charts-container {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 30px;
+        margin-bottom: 30px;
+    }
+    
+    .chart-box {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .chart-wrapper {
+        position: relative;
+        height: 300px;
+        width: 100%;
+    }
+    
+    /* Container para tabelas responsivas */
+    .table-responsive-container {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+    
+    /* Ajustes para mobile */
+    @media (max-width: 1200px) {
+        .dashboard-cards {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    @media (max-width: 992px) {
+        /* Tabelas com rolagem horizontal */
+        #financialReportTable,
+        #barberPerformanceTable {
+            min-width: 800px;
+        }
+        
+        /* Gráficos em coluna */
+        .charts-container {
+            grid-template-columns: 1fr;
+        }
+        
+        .chart-wrapper {
+            height: 250px;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        /* Cards em coluna */
+        .dashboard-cards {
+            grid-template-columns: 1fr;
+        }
+        
+        /* Ajuste do card */
+        .card {
+            flex-direction: row;
+            align-items: center;
+        }
+        
+        .card-icon {
+            width: 60px;
+            height: 60px;
+        }
+        
+        .card-icon i {
+            font-size: 1.5rem;
+        }
+        
+        .card-content {
+            padding: 15px;
+        }
+        
+        .card-value {
+            font-size: 1.5rem;
+        }
+        
+        /* Filtros em coluna */
+        .filters-container {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 15px;
+        }
+        
+        .period-select,
+        .export-btn {
+            width: 100%;
+        }
+        
+        .form-control {
+            width: 100% !important;
+        }
+        
+        /* Período personalizado em coluna */
+        .custom-period {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+        }
+        
+        .date-input {
+            width: 100%;
+        }
+        
+        /* Gráficos menores */
+        .chart-wrapper {
+            height: 200px;
+        }
+        
+        /* Títulos menores */
+        h2 {
+            font-size: 1.5rem !important;
+        }
+        
+        h3 {
+            font-size: 1.2rem !important;
+        }
+        
+        /* Tabelas com fonte menor */
+        table {
+            font-size: 0.85rem;
+        }
+        
+        th, td {
+            padding: 10px 8px;
+        }
+        
+        /* Botões compactos */
+        .btn {
+            padding: 10px 15px;
+            font-size: 0.9rem;
+            width: 100%;
+            justify-content: center;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        /* Ajustes para celulares muito pequenos */
+        .card {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            margin-bottom: 10px;
+        }
+        
+        .card-content {
+            padding: 10px;
+        }
+        
+        .card-value {
+            font-size: 1.3rem;
+        }
+        
+        /* Gráficos ainda menores */
+        .chart-wrapper {
+            height: 180px;
+        }
+        
+        /* Títulos compactos */
+        h2 {
+            font-size: 1.3rem !important;
+        }
+        
+        h3 {
+            font-size: 1.1rem !important;
+        }
+        
+        /* Espaçamentos reduzidos */
+        .main-content {
+            padding: 10px !important;
+        }
+        
+        .section {
+            padding: 15px !important;
+            margin-bottom: 20px !important;
+        }
+        
+        /* Tabelas compactas */
+        table {
+            font-size: 0.8rem;
+        }
+        
+        th, td {
+            padding: 8px 6px;
+        }
+        
+        /* Botões compactos */
+        .btn {
+            padding: 8px 12px;
+            font-size: 0.85rem;
+        }
+        
+        .btn i {
+            font-size: 0.9rem;
+        }
+    }
+    
+    /* Melhorias visuais gerais */
+    .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .chart-box {
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .chart-box:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    }
+    
+    /* Status colors */
+    .status-completed {
+        background-color: #e8f5e9;
+        color: #2e7d32;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+    
+    .status-pending {
+        background-color: #fff3e0;
+        color: #f57c00;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+</style>
+</body>
+</html>

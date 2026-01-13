@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Serviços - Bolanos Barbershop</title>
+    <link rel="stylesheet" href="estilo.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo-container">
+                <div class="logo">
+                    <i class="fas fa-cut"></i>
+                    <h1>Bolanos Barbershop</h1>
+                </div>
+
+                <!-- BOTÃO HAMBÚRGUER -->
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <div class="user-info" id="userInfo">
+                    <span id="userName">Carregando...</span>
+                    <button onclick="logout()" class="btn-logout">Sair</button>
+                </div>
+            </div>
+
+            <!-- OVERLAY DO MENU -->
+            <div class="menu-overlay" id="menuOverlay"></div>
+
+            <!-- Navegação CORRIGIDA (Serviços ativo) -->
+            <nav class="navbar">
+                <ul>
+                    <li><a href="index.html"><i class="fas fa-home"></i> Dashboard</a></li>
+                    <li><a href="agendamentos.html"><i class="fas fa-calendar-alt"></i> Agendamentos</a></li>
+                    <li><a href="clientes.html"><i class="fas fa-users"></i> Clientes</a></li>
+                    <li><a href="servicos.html" class="active"><i class="fas fa-concierge-bell"></i> Serviços</a></li>
+                    <li><a href="financeiro.html"><i class="fas fa-chart-line"></i> Financeiro</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main class="main-content">
+            <div class="section">
+                <h2><i class="fas fa-concierge-bell"></i> Gerenciamento de Serviços</h2>
+
+                <!-- Cabeçalho com botão e busca - RESPONSIVO -->
+                <div class="services-header mb-20" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                    <div>
+                        <button id="newServiceBtn" class="btn btn-primary">
+                            <i class="fas fa-plus-circle"></i> Novo Serviço
+                        </button>
+                    </div>
+
+                    <div class="search-container" style="min-width: 250px; max-width: 400px; width: 100%;">
+                        <input type="text" id="searchService" class="form-control" placeholder="Pesquisar serviços...">
+                    </div>
+                </div>
+
+                <div id="alertMessage" class="alert hidden"></div>
+
+                <!-- Formulário de novo serviço -->
+                <div id="serviceFormContainer" class="form-container hidden">
+                    <h3><i class="fas fa-plus-circle"></i> Novo Serviço</h3>
+
+                    <form id="serviceForm">
+                        <div class="form-group">
+                            <label for="serviceName">Nome do Serviço *</label>
+                            <input type="text" id="serviceName" class="form-control" placeholder="Ex: Corte Social"
+                                required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="serviceDescription">Descrição</label>
+                            <textarea id="serviceDescription" class="form-control" rows="3"
+                                placeholder="Descrição detalhada do serviço"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="servicePrice">Preço (R$) *</label>
+                            <input type="number" id="servicePrice" class="form-control" step="0.01" min="0"
+                                placeholder="Ex: 35.00" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="serviceDuration">Duração (minutos) *</label>
+                            <input type="number" id="serviceDuration" class="form-control" min="5" step="5" value="30"
+                                required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="serviceCategory">Categoria</label>
+                            <select id="serviceCategory" class="form-control">
+                                <option value="Corte">Corte</option>
+                                <option value="Barba">Barba</option>
+                                <option value="Combo">Combo (Corte + Barba)</option>
+                                <option value="Outros">Outros</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="serviceActive" style="display: flex; align-items: center; gap: 8px;">
+                                <input type="checkbox" id="serviceActive" checked> Serviço ativo
+                            </label>
+                        </div>
+
+                        <div class="form-group" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button type="submit" class="btn btn-primary">Salvar Serviço</button>
+                            <button type="button" id="cancelFormBtn" class="btn btn-secondary">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Lista de serviços com scroll responsivo -->
+                <div class="table-responsive-container">
+                    <div class="table-container">
+                        <table id="servicesTable">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th class="description-column">Descrição</th>
+                                    <th>Preço</th>
+                                    <th>Duração</th>
+                                    <th class="category-column">Categoria</th>
+                                    <th class="status-column">Status</th>
+                                    <th class="actions-column">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Dados carregados via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>Bolanos Barbershop &copy; <span id="currentYear"></span> - Sistema de Gerenciamento</p>
+            <p class="footer-links">
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-whatsapp"></i></a>
+            </p>
+        </footer>
+    </div>
+
+    <!-- Scripts NA ORDEM CORRETA -->
+    <script src="firebase-config.js"></script>
+    <script src="auth.js"></script>
+    <script src="servicos.js"></script>
+
+    <script>
+        // Função logout global
+        function logout() {
+            if (window.logout) {
+                window.logout();
+            } else {
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Ano atual no rodapé
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+    </script>
+
+    <script>
+    // MENU HAMBÚRGUER VERSÃO DEFINITIVA - SERVIÇOS
+    console.log('🚀 Inicializando menu hambúrguer - Serviços...');
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('📱 DOM carregado - Configurando menu...');
+        
+        const btn = document.getElementById('menuToggle');
+        const overlay = document.getElementById('menuOverlay');
+        const menu = document.querySelector('.navbar');
+        
+        if (!btn || !menu) {
+            console.error('❌ Elementos essenciais não encontrados!');
+            return;
+        }
+        
+        console.log('✅ Elementos encontrados:', {btn, menu, overlay});
+        
+        // ===== 1. FORÇAR ESTILOS VIA JAVASCRIPT =====
+        
+        // Menu lateral
+        menu.style.position = 'fixed';
+        menu.style.top = '0';
+        menu.style.left = '-100%';
+        menu.style.width = '280px';
+        menu.style.height = '100vh';
+        menu.style.background = '#111';
+        menu.style.zIndex = '1000';
+        menu.style.transition = 'left 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+        menu.style.paddingTop = '80px';
+        menu.style.boxShadow = '2px 0 15px rgba(0,0,0,0.3)';
+        menu.style.overflowY = 'auto';
+        menu.style.display = 'block';
+        
+        // Overlay
+        if (overlay) {
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100%';
+            overlay.style.height = '100%';
+            overlay.style.background = 'rgba(0,0,0,0.7)';
+            overlay.style.zIndex = '999';
+            overlay.style.display = 'none';
+            overlay.style.opacity = '0';
+            overlay.style.transition = 'opacity 0.3s ease';
+        }
+        
+        // Botão hambúrguer
+        btn.style.background = '#333';
+        btn.style.border = 'none';
+        btn.style.color = 'white';
+        btn.style.fontSize = '1.5rem';
+        btn.style.cursor = 'pointer';
+        btn.style.width = '44px';
+        btn.style.height = '44px';
+        btn.style.borderRadius = '4px';
+        btn.style.display = 'flex';
+        btn.style.alignItems = 'center';
+        btn.style.justifyContent = 'center';
+        btn.style.position = 'absolute';
+        btn.style.right = '20px';
+        btn.style.top = '50%';
+        btn.style.transform = 'translateY(-50%)';
+        btn.style.zIndex = '1001';
+        btn.style.transition = 'background 0.3s';
+        
+        // ===== 2. CONTROLE DE ESTADO =====
+        let menuAberto = false;
+        
+        // ===== 3. FUNÇÕES PRINCIPAIS =====
+        
+        function abrirMenu() {
+            console.log('📱 ABRINDO menu lateral');
+            menu.style.left = '0px';
+            menuAberto = true;
+            
+            if (overlay) {
+                overlay.style.display = 'block';
+                setTimeout(() => {
+                    overlay.style.opacity = '1';
+                }, 10);
+            }
+            
+            btn.querySelector('i').className = 'fas fa-times';
+            console.log('✅ Menu ABERTO - left:', menu.style.left);
+        }
+        
+        function fecharMenu() {
+            console.log('🔒 FECHANDO menu lateral');
+            menu.style.left = '-100%';
+            menuAberto = false;
+            
+            if (overlay) {
+                overlay.style.opacity = '0';
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                }, 300);
+            }
+            
+            btn.querySelector('i').className = 'fas fa-bars';
+            console.log('✅ Menu FECHADO - left:', menu.style.left);
+        }
+        
+        function toggleMenu() {
+            console.log('🎯 Toggle menu - Estado atual:', menuAberto ? 'ABERTO' : 'FECHADO');
+            if (menuAberto) {
+                fecharMenu();
+            } else {
+                abrirMenu();
+            }
+        }
+        
+        // ===== 4. EVENTOS =====
+        
+        // Clique no botão hambúrguer
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('👉 Botão hambúrguer CLICADO fisicamente');
+            toggleMenu();
+        });
+        
+        // Clique no overlay para fechar
+        if (overlay) {
+            overlay.addEventListener('click', function(e) {
+                e.stopPropagation();
+                console.log('👆 Overlay clicado');
+                fecharMenu();
+            });
+        }
+        
+        // Clique nos links para fechar
+        document.querySelectorAll('.navbar a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                console.log('🔗 Link de navegação clicado:', this.textContent);
+                fecharMenu();
+            });
+        });
+        
+        // Fechar com tecla ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && menuAberto) {
+                console.log('ESC pressionado');
+                fecharMenu();
+            }
+        });
+        
+        // Fechar ao clicar fora do menu (em mobile)
+        document.addEventListener('click', function(e) {
+            if (menuAberto && 
+                !menu.contains(e.target) && 
+                !btn.contains(e.target) &&
+                window.innerWidth <= 768) {
+                console.log('👆 Clicou fora do menu em mobile');
+                fecharMenu();
+            }
+        });
+        
+        // ===== 5. CONTROLE RESPONSIVO =====
+        
+        function atualizarResponsividade() {
+            const largura = window.innerWidth;
+            console.log('📐 Largura da tela:', largura, 'px');
+            
+            if (largura <= 768) {
+                // MODO MOBILE
+                btn.style.display = 'flex';
+                console.log('📱 Modo mobile - Botão visível');
+                
+                // Forçar menu lateral
+                menu.style.position = 'fixed';
+                menu.style.left = menuAberto ? '0px' : '-100%';
+                
+            } else {
+                // MODO DESKTOP
+                btn.style.display = 'none';
+                console.log('💻 Modo desktop - Botão oculto');
+                
+                // Resetar menu para layout horizontal
+                menu.style.position = 'static';
+                menu.style.left = 'auto';
+                menu.style.width = 'auto';
+                menu.style.height = 'auto';
+                menu.style.paddingTop = '0';
+                menu.style.boxShadow = 'none';
+                menu.style.background = '#111';
+                
+                // Fechar menu se estiver aberto
+                if (menuAberto) {
+                    fecharMenu();
+                }
+            }
+        }
+        
+        // Aplicar responsividade inicial
+        atualizarResponsividade();
+        
+        // Atualizar ao redimensionar
+        window.addEventListener('resize', function() {
+            console.log('🔄 Janela redimensionada');
+            atualizarResponsividade();
+        });
+        
+        console.log('🎉 Menu hambúrguer inicializado com sucesso!');
+    });
+</script>
+
+<!-- ADICIONE ESTE CSS ESPECÍFICO PARA RESPONSIVIDADE -->
+<style>
+    /* ===== ESTILOS RESPONSIVOS ESPECÍFICOS PARA SERVIÇOS ===== */
+    
+    /* Cabeçalho responsivo */
+    .services-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    
+    /* Container da tabela responsiva */
+    .table-responsive-container {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    /* Ajustes da tabela para mobile */
+    @media (max-width: 992px) {
+        #servicesTable {
+            min-width: 900px; /* Força rolagem horizontal em telas médias */
+        }
+        
+        .description-column,
+        .category-column {
+            min-width: 150px;
+        }
+        
+        .status-column {
+            min-width: 100px;
+        }
+        
+        .actions-column {
+            min-width: 120px;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        /* Cabeçalho em coluna */
+        .services-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .search-container {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+        
+        /* Formulário responsivo */
+        .form-container {
+            padding: 20px !important;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        /* Botões do formulário em coluna */
+        .form-group:last-child {
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        /* Ajustes na tabela */
+        #servicesTable {
+            font-size: 0.85rem;
+            min-width: 1000px; /* Mais largura para rolagem em mobile */
+        }
+        
+        #servicesTable th,
+        #servicesTable td {
+            padding: 10px 8px;
+        }
+        
+        /* Ações em coluna */
+        .actions-column {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .btn-action {
+            margin: 2px 0;
+            width: 100%;
+            text-align: center;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        /* Títulos menores */
+        h2 {
+            font-size: 1.5rem !important;
+        }
+        
+        .section h2 {
+            font-size: 1.4rem !important;
+        }
+        
+        /* Espaçamentos reduzidos */
+        .main-content {
+            padding: 15px !important;
+        }
+        
+        .section {
+            padding: 15px !important;
+        }
+        
+        /* Inputs e selects 100% largura */
+        .form-control {
+            width: 100% !important;
+        }
+        
+        /* Tabela com fonte ainda menor */
+        #servicesTable {
+            font-size: 0.8rem;
+        }
+        
+        /* Status badges compactos */
+        .status-badge {
+            padding: 3px 8px;
+            font-size: 0.75rem;
+        }
+        
+        /* Botões compactos */
+        .btn {
+            padding: 10px 15px;
+            font-size: 0.9rem;
+        }
+        
+        /* Ícones menores */
+        .btn i {
+            font-size: 0.9rem;
+        }
+    }
+    
+    /* Melhorias visuais gerais */
+    #servicesTable tbody tr:hover {
+        background-color: #f9f9f9;
+        transition: background-color 0.2s;
+    }
+    
+    /* Linhas alternadas para melhor leitura */
+    #servicesTable tbody tr:nth-child(even) {
+        background-color: #f8f9fa;
+    }
+    
+    /* Status visual melhorado */
+    .status-active {
+        background-color: #e8f5e9;
+        color: #2e7d32;
+    }
+    
+    .status-inactive {
+        background-color: #ffebee;
+        color: #c62828;
+    }
+</style>
+</body>
+</html>
