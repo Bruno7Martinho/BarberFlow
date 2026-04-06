@@ -279,16 +279,16 @@ async function saveAppointment(e) {
             Hora: ${appointmentHour}`);
 
         // Verificar se é domingo (0)
-        if (dayOfWeek === 0) {
-            showAlert('error', '❌ A barbearia não funciona aos domingos');
-            return;
-        }
+        //if (dayOfWeek === 0) {
+          //  showAlert('error', '❌ A barbearia não funciona aos domingos');
+         //   return;
+       // }
 
         // VALIDAÇÃO DE HORÁRIO COMERCIAL (8h às 20h)
-        if (appointmentHour < 8 || appointmentHour > 20) {
-            showAlert('error', '❌ Horário fora do funcionamento (8h às 20h)');
-            return;
-        }
+        //if (appointmentHour < 8 || appointmentHour > 20) {
+         //   showAlert('error', '❌ Horário fora do funcionamento (8h às 20h)');
+         //   return;
+        //}
 
         // Validar formato do horário
         const timePattern = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;

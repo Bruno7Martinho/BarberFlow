@@ -468,7 +468,109 @@ tr:hover {
     color: #000;
 }
 
-/* Responsividade */
+/* ===== CARDS DE DESEMPENHO DOS BARBEIROS (CORRIGIDO) ===== */
+
+.barber-card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    border-left: 5px solid #28a745;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+/* Layout padrão para desktop */
+.barber-card {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 20px;
+    align-items: center;
+}
+
+/* Para tablets (entre 768px e 1024px) */
+@media (max-width: 1024px) {
+    .barber-card {
+        grid-template-columns: auto 1fr;
+        grid-template-rows: auto auto;
+        gap: 15px;
+    }
+    
+    .barber-card > div:first-child {
+        grid-row: span 2;
+    }
+    
+    .barber-card > div:last-child {
+        grid-column: 2;
+        justify-self: flex-start;
+        margin-top: 0;
+    }
+}
+
+/* Para mobile (abaixo de 768px) */
+@media (max-width: 768px) {
+    .barber-card {
+        display: flex;
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+    
+    .barber-card > div:first-child {
+        text-align: center;
+    }
+    
+    .barber-card > div:first-child i {
+        font-size: 2rem;
+    }
+    
+    .barber-card > div:first-child div {
+        font-size: 1.1rem;
+    }
+    
+    /* Grade interna de estatísticas */
+    .barber-card > div:nth-child(2) > div {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 12px !important;
+    }
+    
+    .barber-card > div:nth-child(2) > div > div {
+        text-align: center;
+    }
+    
+    .barber-card > div:last-child {
+        text-align: center;
+        min-width: auto !important;
+    }
+}
+
+/* Para telas muito pequenas (abaixo de 480px) */
+@media (max-width: 480px) {
+    .barber-card {
+        padding: 15px;
+    }
+    
+    .barber-card > div:nth-child(2) > div {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+    }
+    
+    .barber-card > div:last-child {
+        min-width: auto !important;
+    }
+    
+    .barber-card > div:last-child > div:first-child {
+        font-size: 0.8rem;
+    }
+    
+    .barber-card > div:last-child > div:nth-child(2) {
+        font-size: 1.5rem;
+    }
+}
+
+/* ===== FIM DA CORREÇÃO DO DESEMPENHO ===== */
+
+/* Responsividade geral */
 @media (max-width: 992px) {
     .navbar ul {
         flex-wrap: wrap;
@@ -569,10 +671,6 @@ tr:hover {
     
     .menu-overlay.active {
         display: block;
-    }
-    
-    .navbar li {
-        flex: 1 0 100%;
     }
     
     .dashboard-cards {
@@ -685,8 +783,8 @@ tr:hover {
     overflow: hidden;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     margin-bottom: 30px;
-    overflow-x: auto; /* Adicione rolagem horizontal */
-    -webkit-overflow-scrolling: touch; /* Scroll suave no iOS */
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 /* Cabeçalho da semana */
@@ -696,7 +794,7 @@ tr:hover {
     background: #000;
     color: white;
     font-weight: 600;
-    min-width: 800px; /* Largura mínima para rolagem */
+    min-width: 800px;
 }
 
 .calendar-time-column {
@@ -719,7 +817,7 @@ tr:hover {
 .calendar-week-body {
     max-height: 600px;
     overflow-y: auto;
-    min-width: 800px; /* Largura mínima para rolagem */
+    min-width: 800px;
 }
 
 .calendar-time-slot {
@@ -727,7 +825,7 @@ tr:hover {
     grid-template-columns: 80px repeat(7, 1fr);
     border-bottom: 1px solid #eee;
     min-height: 60px;
-    min-width: 800px; /* Largura mínima para rolagem */
+    min-width: 800px;
 }
 
 .calendar-time-slot:hover {
@@ -1016,7 +1114,7 @@ tr:hover {
     margin-top: 30px;
 }
 
-/* Responsividade - CORREÇÃO PRINCIPAL AQUI */
+/* Responsividade da agenda */
 @media (max-width: 1200px) {
     .calendar-week-header {
         grid-template-columns: 60px repeat(7, 1fr);
@@ -1607,20 +1705,6 @@ tr:hover {
     color: #999;
 }
 
-/* Cards de barbeiros */
-.barber-card {
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    margin-bottom: 15px;
-    border-left: 5px solid #28a745;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: 20px;
-    align-items: center;
-}
-
 /* Animações */
 @keyframes fadeIn {
     from {
@@ -1638,123 +1722,9 @@ tr:hover {
     opacity: 0;
 }
 
+/* ===== MENU HAMBÚRGUER CORRIGIDO ===== */
 
-/* ===== CORREÇÃO URGENTE DO MENU HAMBÚRGUER ===== */
-
-/* 1. MOSTRAR O BOTÃO HAMBÚRGUER SEMPRE EM TELAS PEQUENAS */
-.menu-toggle {
-    display: none !important; /* Escondido por padrão */
-    background: #333 !important;
-    border: none !important;
-    color: white !important;
-    font-size: 1.5rem !important;
-    cursor: pointer !important;
-    width: 44px !important;
-    height: 44px !important;
-    border-radius: 4px !important;
-    position: absolute !important;
-    right: 20px !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
-    z-index: 1001 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-}
-
-/* 2. MOSTRAR EM TELAS PEQUENAS */
-@media (max-width: 768px) {
-    .menu-toggle {
-        display: flex !important; /* MOSTRA O BOTÃO */
-    }
-    
-    /* Ajusta o layout do header */
-    .logo-container {
-        position: relative !important;
-        padding-right: 70px !important; /* Espaço para o botão */
-    }
-    
-    .logo h1 {
-        font-size: 1.4rem !important;
-    }
-    
-    .user-info {
-        flex-direction: row !important;
-        justify-content: center !important;
-        gap: 10px !important;
-        margin-top: 10px !important;
-    }
-    
-    /* 3. ESTILOS DO MENU LATERAL */
-    .navbar {
-        position: fixed !important;
-        top: 0 !important;
-        left: -100% !important;
-        width: 280px !important;
-        height: 100vh !important;
-        background: #111 !important;
-        z-index: 1000 !important;
-        transition: left 0.3s ease !important;
-        padding-top: 80px !important;
-        box-shadow: 2px 0 10px rgba(0,0,0,0.3) !important;
-    }
-    
-    .navbar.active {
-        left: 0 !important;
-    }
-    
-    .navbar ul {
-        flex-direction: column !important;
-        padding: 0 !important;
-    }
-    
-    .navbar li {
-        width: 100% !important;
-    }
-    
-    .navbar a {
-        padding: 18px 25px !important;
-        border-left: 4px solid transparent !important;
-        border-bottom: 1px solid #222 !important;
-    }
-    
-    .navbar a:hover, 
-    .navbar a.active {
-        border-left: 4px solid white !important;
-        background: #222 !important;
-    }
-    
-    /* 4. OVERLAY */
-    .menu-overlay {
-        display: none !important;
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 100% !important;
-        height: 100% !important;
-        background: rgba(0,0,0,0.5) !important;
-        z-index: 999 !important;
-    }
-    
-    .menu-overlay.active {
-        display: block !important;
-    }
-}
-
-/* 5. ESCONDER EM DESKTOP */
-@media (min-width: 769px) {
-    .menu-toggle {
-        display: none !important;
-    }
-    
-    .menu-overlay {
-        display: none !important;
-    }
-}
-
-/* ===== CORREÇÃO URGENTE DO MENU HAMBÚRGUER ===== */
-
-/* FORÇAR ESTILOS DO MENU LATERAL */
+/* Forçar estilos do menu lateral */
 .navbar {
     position: fixed !important;
     top: 0 !important;
@@ -1769,12 +1739,12 @@ tr:hover {
     overflow-y: auto !important;
 }
 
-/* QUANDO ATIVO - MOSTRAR MENU */
+/* Quando ativo - mostrar menu */
 .navbar.active {
     left: 0 !important;
 }
 
-/* LISTA DO MENU */
+/* Lista do menu */
 .navbar ul {
     display: flex !important;
     flex-direction: column !important;
@@ -1784,13 +1754,13 @@ tr:hover {
     width: 100% !important;
 }
 
-/* ITENS DO MENU */
+/* Itens do menu */
 .navbar li {
     width: 100% !important;
     border-bottom: 1px solid #222 !important;
 }
 
-/* LINKS DO MENU */
+/* Links do menu */
 .navbar a {
     display: flex !important;
     align-items: center !important;
@@ -1803,7 +1773,7 @@ tr:hover {
     font-size: 1rem !important;
 }
 
-/* LINK ATIVO/HOVER */
+/* Link ativo/hover */
 .navbar a:hover,
 .navbar a.active {
     background: #222 !important;
@@ -1811,7 +1781,7 @@ tr:hover {
     border-left: 4px solid white !important;
 }
 
-/* OVERLAY */
+/* Overlay */
 .menu-overlay {
     display: none !important;
     position: fixed !important;
@@ -1827,7 +1797,7 @@ tr:hover {
     display: block !important;
 }
 
-/* BOTÃO HAMBÚRGUER */
+/* Botão hambúrguer */
 .menu-toggle {
     background: #333 !important;
     border: none !important;
@@ -1847,7 +1817,7 @@ tr:hover {
     background: #555 !important;
 }
 
-/* MOSTRAR EM TELAS PEQUENAS */
+/* Mostrar em telas pequenas */
 @media (max-width: 768px) {
     .menu-toggle {
         display: flex !important;
@@ -1867,7 +1837,7 @@ tr:hover {
     }
 }
 
-/* ESCONDER EM DESKTOP */
+/* Esconder em desktop */
 @media (min-width: 769px) {
     .menu-toggle {
         display: none !important;
