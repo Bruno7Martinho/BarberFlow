@@ -137,7 +137,7 @@
         </main>
 
         <footer class="footer">
-            <p>BarberFlow © <span id="currentYear">2024</span> - Sistema de Gestão Profissional</p>
+            <p>BarberFlow © <span id="currentYear">2026</span> - Sistema de Gestão Profissional</p>
         </footer>
     </div>
 
@@ -475,7 +475,7 @@
                 lastDay.setHours(23, 59, 59, 999);
 
                 // Obter todos os barbeiros do sistema
-                const barbers = ['Pedro', 'Murilo']; // Lista de barbeiros
+                const barbers = ['Guilherme']; // Lista de barbeiros
 
                 // Obter todos os serviços para calcular valores
                 const servicesSnapshot = await db.collection('services').get();
@@ -570,8 +570,8 @@
 
                     // Determinar ícone baseado no nome do barbeiro
                     let barberIcon = 'fa-user-tie';
-                    if (barber.includes('Pedro')) barberIcon = 'fa-crown';
-                    if (barber.includes('Murilo')) barberIcon = 'fa-award';
+                    if (barber.includes('Guilherme')) barberIcon = 'fa-crown';
+                    //if (barber.includes('Murilo')) barberIcon = 'fa-award';
 
                     const barberCard = document.createElement('div');
                     barberCard.className = 'barber-card';

@@ -105,20 +105,20 @@ async function determineUserType(user) {
             console.log('Usuário identificado como BARBEIRO:', currentUserBarber);
         } else {
             // Se não encontrou, verificar pelo email
-            if (userEmail === 'pedro@bolanos.com') {
-                currentUserBarber = 'Pedro';
+            if (userEmail === 'guilherme@admin.com') {
+                currentUserBarber = 'Guilherme';
                 isAdmin = false;
                 
                 // Criar registro do barbeiro
                 await barbersRef.add({
                     email: userEmail,
-                    name: 'Pedro',
+                    name: 'Guilherme',
                     role: 'barber',
                     active: true,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
-                console.log('Barbeiro Pedro registrado no sistema');
+                console.log('Barbeiro Guilherme registrado no sistema');
             } 
             else if (userEmail === 'murilo@bolanos.com') {
                 currentUserBarber = 'Murilo';
@@ -436,10 +436,10 @@ function showAppointmentForm() {
     console.log('📝 Abrindo formulário de agendamento...');
     
     // Verificar se barbeiro pode criar agendamento
-    if (!isAdmin && currentUserBarber) {
-        showAlert('warning', '⚠️ Barbeiros não podem criar novos agendamentos. Contate o administrador.');
-        return;
-    }
+    //if (!isAdmin && currentUserBarber) {
+       // showAlert('warning', '⚠️ Barbeiros não podem criar novos agendamentos. Contate o administrador.');
+      // return;
+    //}
     
     // Remover overlay existente se houver
     hideAppointmentForm();
@@ -688,8 +688,7 @@ function createFormContainer() {
                 <label style="display: block; margin-bottom: 5px; font-weight: bold;">Barbeiro *</label>
                 <select id="barberSelect" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
                     <option value="">Selecione um barbeiro</option>
-                    <option value="Pedro">Pedro - Especialista em cortes de cabelo</option>
-                    <option value="Murilo">Murilo - Especialista em Estilo</option>
+                    <option value="Guilherme">Guilherme - Especialista em cortes de cabelo</option>
                 </select>
             </div>
             
