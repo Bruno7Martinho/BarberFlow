@@ -282,7 +282,7 @@ async function saveAppointment(e) {
         //if (dayOfWeek === 0) {
           //  showAlert('error', '❌ A barbearia não funciona aos domingos');
          //   return;
-       // }
+       //  }
 
         // VALIDAÇÃO DE HORÁRIO COMERCIAL (8h às 20h)
         //if (appointmentHour < 8 || appointmentHour > 20) {
