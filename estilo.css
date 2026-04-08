@@ -1876,3 +1876,102 @@ tr:hover {
         border-bottom: 3px solid white !important;
     }
 }
+
+
+/* ===== AJUSTES RESPONSIVOS PARA O HEADER DO CALENDÁRIO ===== */
+.calendar-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.calendar-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Botão Novo Agendamento - Garantir visibilidade */
+#newAppointmentBtn {
+    background-color: #25D366;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+#newAppointmentBtn:hover {
+    background-color: #128C7E;
+    transform: scale(1.02);
+}
+
+/* RESPONSIVO: Telas pequenas */
+@media (max-width: 768px) {
+    .calendar-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .calendar-controls {
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    .calendar-controls button,
+    .calendar-controls .week-range {
+        font-size: 12px;
+        padding: 6px 10px;
+    }
+    
+    /* Garantir que o botão Novo Agendamento fique visível e destacado */
+    #newAppointmentBtn {
+        width: 100%;
+        text-align: center;
+        margin-top: 5px;
+        padding: 12px;
+        font-size: 14px;
+    }
+    
+    /* Ajustar os botões de navegação da semana */
+    #prevWeek, #nextWeek, #todayBtn {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+    
+    .week-range {
+        font-size: 12px;
+        min-width: 140px;
+        text-align: center;
+    }
+}
+
+/* Telas muito pequenas (celular) */
+@media (max-width: 480px) {
+    .calendar-controls {
+        gap: 5px;
+    }
+    
+    .calendar-controls button,
+    .calendar-controls .week-range {
+        font-size: 11px;
+        padding: 5px 8px;
+    }
+    
+    #newAppointmentBtn {
+        padding: 10px;
+        font-size: 13px;
+    }
+    
+    .week-range {
+        min-width: 120px;
+        font-size: 11px;
+    }
+}
