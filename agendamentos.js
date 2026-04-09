@@ -238,12 +238,6 @@ async function saveAppointment(e) {
             return;
         }
 
-        // ===== TODAS AS VALIDAÇÕES DE DATA/HORA FORAM REMOVIDAS =====
-        // Pode agendar qualquer data (passada, presente ou futura)
-        // Pode agendar qualquer horário (até mesmo já passado)
-        // Pode agendar aos domingos
-        // Pode agendar fora do horário comercial
-
         const timePattern = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
         if (!timePattern.test(appointmentData.time)) {
             showAlert('error', '❌ Horário inválido. Use formato HH:MM (24h)');
@@ -427,8 +421,6 @@ function showAppointmentForm() {
     formClone.classList.remove('hidden');
     formWrapper.appendChild(formClone);
     
-    // ===== REMOVIDA A RESTRIÇÃO DE DATA MÍNIMA =====
-    // Agora pode selecionar QUALQUER data (passada, presente ou futura)
     const today = new Date().toISOString().split('T')[0];
     const now = new Date();
     const nextHour = new Date(now.getTime() + 60 * 60 * 1000);
@@ -443,8 +435,7 @@ function showAppointmentForm() {
     
     if (cloneDateField) {
         cloneDateField.value = today;
-        // REMOVIDO: cloneDateField.min = today;  // Não bloqueia mais datas passadas
-        cloneDateField.removeAttribute('min'); // Remove qualquer restrição
+        cloneDateField.removeAttribute('min');
     }
     if (cloneTimeField) cloneTimeField.value = timeString;
     if (cloneStatusField) cloneStatusField.value = 'Agendado';
@@ -501,7 +492,7 @@ function showAppointmentForm() {
         e.stopPropagation();
     });
 
-    console.log('✅ Formulário de agendamento aberto - SEM RESTRIÇÕES de data/hora');
+    console.log('✅ Formulário de agendamento aberto - SEM RESTRIÇÕES');
 }
 
 function hideAppointmentForm() {
@@ -661,7 +652,6 @@ function createFormContainer() {
         
         if (dateField) {
             dateField.value = today;
-            // REMOVIDO: dateField.min = today;  // Não bloqueia mais datas passadas
             dateField.removeAttribute('min');
         }
         if (timeField) timeField.value = timeString;
@@ -908,6 +898,8 @@ async function checkTimeConflict(appointmentData, excludeId = null) {
 // ========== FUNÇÕES DE GERENCIAMENTO DE AGENDAMENTOS ==========
 
 async function editAppointment(id) {
+    console.log('✏️ editAppointment chamado com ID:', id);
+    
     if (!appointmentsRef) {
         showAlert('error', '❌ Banco de dados não disponível');
         return;
@@ -930,35 +922,57 @@ async function editAppointment(id) {
         
         currentAppointmentId = id;
 
-        document.getElementById('clientSelect').value = appointment.clientId || '';
-        document.getElementById('serviceSelect').value = appointment.serviceId || '';
-        document.getElementById('barberSelect').value = appointment.barber || '';
-        document.getElementById('appointmentDate').value = appointment.date || '';
-        document.getElementById('appointmentTime').value = appointment.time || '';
-        document.getElementById('appointmentStatus').value = appointment.status || 'Agendado';
-        document.getElementById('appointmentNotes').value = appointment.notes || '';
-
+        // Preencher o formulário original (não o clone)
+        const clientSelect = document.getElementById('clientSelect');
+        const serviceSelect = document.getElementById('serviceSelect');
+        const barberSelect = document.getElementById('barberSelect');
         const dateField = document.getElementById('appointmentDate');
+        const timeField = document.getElementById('appointmentTime');
+        const statusField = document.getElementById('appointmentStatus');
+        const notesField = document.getElementById('appointmentNotes');
+        
+        if (clientSelect) clientSelect.value = appointment.clientId || '';
+        if (serviceSelect) serviceSelect.value = appointment.serviceId || '';
+        if (barberSelect) barberSelect.value = appointment.barber || '';
         if (dateField) {
+            dateField.value = appointment.date || '';
             dateField.removeAttribute('min');
         }
+        if (timeField) timeField.value = appointment.time || '';
+        if (statusField) statusField.value = appointment.status || 'Agendado';
+        if (notesField) notesField.value = appointment.notes || '';
 
+        // Mostrar formulário
         showAppointmentForm();
         
+        // Aguardar o clone ser criado e preencher novamente
         setTimeout(() => {
-            document.getElementById('clientSelect').value = appointment.clientId || '';
-            document.getElementById('serviceSelect').value = appointment.serviceId || '';
-            document.getElementById('barberSelect').value = appointment.barber || '';
-            document.getElementById('appointmentDate').value = appointment.date || '';
-            document.getElementById('appointmentTime').value = appointment.time || '';
-            document.getElementById('appointmentStatus').value = appointment.status || 'Agendado';
-            document.getElementById('appointmentNotes').value = appointment.notes || '';
-        }, 100);
+            const cloneClientSelect = document.querySelector('#appointmentFormContainerClone #clientSelect');
+            const cloneServiceSelect = document.querySelector('#appointmentFormContainerClone #serviceSelect');
+            const cloneBarberSelect = document.querySelector('#appointmentFormContainerClone #barberSelect');
+            const cloneDateField = document.querySelector('#appointmentFormContainerClone #appointmentDate');
+            const cloneTimeField = document.querySelector('#appointmentFormContainerClone #appointmentTime');
+            const cloneStatusField = document.querySelector('#appointmentFormContainerClone #appointmentStatus');
+            const cloneNotesField = document.querySelector('#appointmentFormContainerClone #appointmentNotes');
+            
+            if (cloneClientSelect) cloneClientSelect.value = appointment.clientId || '';
+            if (cloneServiceSelect) cloneServiceSelect.value = appointment.serviceId || '';
+            if (cloneBarberSelect) cloneBarberSelect.value = appointment.barber || '';
+            if (cloneDateField) {
+                cloneDateField.value = appointment.date || '';
+                cloneDateField.removeAttribute('min');
+            }
+            if (cloneTimeField) cloneTimeField.value = appointment.time || '';
+            if (cloneStatusField) cloneStatusField.value = appointment.status || 'Agendado';
+            if (cloneNotesField) cloneNotesField.value = appointment.notes || '';
+            
+            console.log('✅ Formulário de edição preenchido com os dados do agendamento');
+        }, 200);
 
-        console.log('Editando agendamento:', id);
+        console.log('✅ Editando agendamento:', id);
 
     } catch (error) {
-        console.error('Erro ao carregar agendamento:', error);
+        console.error('❌ Erro ao carregar agendamento para edição:', error);
         showAlert('error', '❌ Erro ao carregar agendamento: ' + error.message);
     }
 }
@@ -1491,14 +1505,6 @@ function renderCalendar() {
                     cell.classList.add('weekend');
                 }
 
-                // Domingo agora está aberto (removido o closed)
-                // if (dayIndex === 6) {
-                //     cell.classList.add('closed');
-                //     cell.innerHTML = '<div class="closed-label">Fechado</div>';
-                //     timeSlot.appendChild(cell);
-                //     continue;
-                // }
-
                 const appointmentsForSlot = appointmentsToShow.filter(app => {
                     if (!app.date || !app.time) return false;
 
@@ -1722,7 +1728,14 @@ function showAppointmentDetails(appointment) {
     const modal = document.getElementById('appointmentModal');
     const modalBody = document.getElementById('modalBody');
 
-    if (!modal || !modalBody) return;
+    if (!modal || !modalBody) {
+        console.error('❌ Modal não encontrado!');
+        return;
+    }
+
+    // Salva o ID do agendamento selecionado
+    window.selectedAppointmentId = appointment.id;
+    console.log('📋 Detalhes do agendamento - ID salvo:', window.selectedAppointmentId);
 
     const canManage = isAdmin || (currentUserBarber && appointment.barber === currentUserBarber);
 
@@ -1797,7 +1810,6 @@ function showAppointmentDetails(appointment) {
         </div>
     `;
 
-    window.selectedAppointmentId = appointment.id;
     modal.classList.remove('hidden');
 }
 
@@ -1807,6 +1819,7 @@ function closeModal() {
         modal.classList.add('hidden');
     }
     window.selectedAppointmentId = null;
+    console.log('🔒 Modal fechado');
 }
 
 function filterAppointments(filter) {

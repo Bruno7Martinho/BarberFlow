@@ -10,6 +10,165 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <style>
+        /* Estilos do Modal - Garantir que funciona */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .modal.hidden {
+            display: none !important;
+        }
+
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: modalFadeIn 0.3s ease;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            background: #000;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.3rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.8rem;
+            cursor: pointer;
+            padding: 0;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.3s;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .modal-body {
+            padding: 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .detail-row {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .detail-row strong {
+            display: inline-block;
+            min-width: 100px;
+            color: #555;
+        }
+
+        .detail-row span {
+            color: #333;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #000;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #333;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+    </style>
 </head>
 
 <body>
@@ -90,6 +249,7 @@
                             <select id="barberSelect" class="form-control" required>
                                 <option value="">Selecione um barbeiro</option>
                                 <option value="Guilherme">Guilherme</option>
+                                <option value="Murilo">Murilo</option>
                             </select>
                         </div>
 
@@ -135,6 +295,7 @@
                             <select class="filter-select" id="barberFilter" style="min-width: 200px;">
                                 <option value="">Todos os Barbeiros</option>
                                 <option value="Guilherme">Apenas Guilherme</option>
+                                <option value="Murilo">Apenas Murilo</option>
                             </select>
                         </div>
                         <button id="clearFiltersBtn" class="btn btn-secondary" style="padding: 8px 15px;">
@@ -195,19 +356,41 @@
         </footer>
     </div>
 
-    <!-- Modal para detalhes do agendamento -->
+    <!-- Modal para detalhes do agendamento - CORRIGIDO -->
     <div id="appointmentModal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
                 <h3><i class="fas fa-calendar-check"></i> Detalhes do Agendamento</h3>
-                <button class="modal-close" onclick="closeModal()">&times;</button>
+                <button class="modal-close" onclick="window.closeModal()">&times;</button>
             </div>
             <div class="modal-body" id="modalBody">
                 <!-- Conteúdo carregado via JS -->
+                <div class="detail-row">
+                    <strong>Cliente:</strong> <span id="modalClientName">Carregando...</span>
+                </div>
+                <div class="detail-row">
+                    <strong>Serviço:</strong> <span id="modalServiceName">Carregando...</span>
+                </div>
+                <div class="detail-row">
+                    <strong>Barbeiro:</strong> <span id="modalBarber">Carregando...</span>
+                </div>
+                <div class="detail-row">
+                    <strong>Data/Hora:</strong> <span id="modalDateTime">Carregando...</span>
+                </div>
+                <div class="detail-row">
+                    <strong>Status:</strong> <span id="modalStatus">Carregando...</span>
+                </div>
+                <div class="detail-row">
+                    <strong>Observações:</strong> <span id="modalNotes">Nenhuma</span>
+                </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-primary" onclick="editSelectedAppointment()">Editar</button>
-                <button class="btn btn-secondary" onclick="closeModal()">Fechar</button>
+                <button class="btn btn-primary" id="modalEditBtn" onclick="window.editSelectedAppointment()">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+                <button class="btn btn-secondary" onclick="window.closeModal()">
+                    <i class="fas fa-times"></i> Fechar
+                </button>
             </div>
         </div>
     </div>
@@ -219,16 +402,52 @@
 
     <script>
         // Função logout global
-        function logout() {
-            if (window.logout) {
-                window.logout();
+        window.logout = function() {
+            if (typeof window.logoutFirebase === 'function') {
+                window.logoutFirebase();
+            } else if (firebase && firebase.auth()) {
+                firebase.auth().signOut().then(() => {
+                    sessionStorage.clear();
+                    window.location.href = 'login.html';
+                }).catch(() => {
+                    sessionStorage.clear();
+                    window.location.href = 'login.html';
+                });
             } else {
+                sessionStorage.clear();
                 window.location.href = 'login.html';
             }
-        }
+        };
+
+        // Função global para fechar modal
+        window.closeModal = function() {
+            const modal = document.getElementById('appointmentModal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+            window.selectedAppointmentId = null;
+        };
+
+        // Função global para editar agendamento selecionado
+        window.editSelectedAppointment = function() {
+            console.log('✏️ Editando agendamento selecionado:', window.selectedAppointmentId);
+            if (window.selectedAppointmentId) {
+                if (typeof window.editAppointment === 'function') {
+                    window.editAppointment(window.selectedAppointmentId);
+                    window.closeModal();
+                } else {
+                    console.error('❌ Função editAppointment não encontrada');
+                    alert('Erro: Função de edição não disponível');
+                }
+            } else {
+                alert('❌ Nenhum agendamento selecionado para editar');
+            }
+        };
 
         // Ano atual no rodapé
         document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        console.log('✅ HTML carregado - Modal configurado');
     </script>
 
     <script>
@@ -464,6 +683,6 @@
         
         console.log('🎉 Menu hambúrguer inicializado com sucesso!');
     });
-</script>
+    </script>
 </body>
 </html>
