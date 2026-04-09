@@ -1,4 +1,4 @@
-// Sistema de gerenciamento de agendamentos - VERSÃO COM PERMISSÃO TOTAL PARA AGENDAMENTOS
+// Sistema de gerenciamento de agendamentos - VERSÃO SEM RESTRIÇÕES DE DATA/HORA
 
 // Variáveis globais
 let appointmentsRef = null;
@@ -238,6 +238,12 @@ async function saveAppointment(e) {
             return;
         }
 
+        // ===== TODAS AS VALIDAÇÕES DE DATA/HORA FORAM REMOVIDAS =====
+        // Pode agendar qualquer data (passada, presente ou futura)
+        // Pode agendar qualquer horário (até mesmo já passado)
+        // Pode agendar aos domingos
+        // Pode agendar fora do horário comercial
+
         const timePattern = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
         if (!timePattern.test(appointmentData.time)) {
             showAlert('error', '❌ Horário inválido. Use formato HH:MM (24h)');
@@ -421,6 +427,8 @@ function showAppointmentForm() {
     formClone.classList.remove('hidden');
     formWrapper.appendChild(formClone);
     
+    // ===== REMOVIDA A RESTRIÇÃO DE DATA MÍNIMA =====
+    // Agora pode selecionar QUALQUER data (passada, presente ou futura)
     const today = new Date().toISOString().split('T')[0];
     const now = new Date();
     const nextHour = new Date(now.getTime() + 60 * 60 * 1000);
@@ -435,7 +443,8 @@ function showAppointmentForm() {
     
     if (cloneDateField) {
         cloneDateField.value = today;
-        cloneDateField.min = today;
+        // REMOVIDO: cloneDateField.min = today;  // Não bloqueia mais datas passadas
+        cloneDateField.removeAttribute('min'); // Remove qualquer restrição
     }
     if (cloneTimeField) cloneTimeField.value = timeString;
     if (cloneStatusField) cloneStatusField.value = 'Agendado';
@@ -492,7 +501,7 @@ function showAppointmentForm() {
         e.stopPropagation();
     });
 
-    console.log('✅ Formulário de agendamento aberto');
+    console.log('✅ Formulário de agendamento aberto - SEM RESTRIÇÕES de data/hora');
 }
 
 function hideAppointmentForm() {
@@ -652,12 +661,13 @@ function createFormContainer() {
         
         if (dateField) {
             dateField.value = today;
-            dateField.min = today;
+            // REMOVIDO: dateField.min = today;  // Não bloqueia mais datas passadas
+            dateField.removeAttribute('min');
         }
         if (timeField) timeField.value = timeString;
     }, 100);
     
-    console.log('✅ Formulário criado dinamicamente');
+    console.log('✅ Formulário criado dinamicamente - SEM RESTRIÇÕES');
 }
 
 async function loadClients() {
@@ -1209,7 +1219,6 @@ function initializeAppointments() {
     console.log('Inicializando sistema de agendamentos...');
     console.log('Tipo de usuário:', isAdmin ? 'ADMIN' : `BARBEIRO (${currentUserBarber})`);
 
-    // ===== NOVA VERSÃO: PERMITIR QUE TODOS FAÇAM AGENDAMENTOS =====
     adjustInterfaceForUserType();
 
     const newAppointmentBtn = document.getElementById('newAppointmentBtn');
@@ -1302,14 +1311,12 @@ function initializeAppointments() {
         currentYearElement.textContent = new Date().getFullYear();
     }
 
-    console.log('✅ Sistema de agendamentos inicializado');
+    console.log('✅ Sistema de agendamentos inicializado - SEM RESTRIÇÕES');
 }
 
-// ===== NOVA VERSÃO: PERMITIR QUE TODOS FAÇAM AGENDAMENTOS =====
 function adjustInterfaceForUserType() {
     console.log('Ajustando interface - Modo: TODOS PODEM AGENDAR');
     
-    // 1. Botão de novo agendamento - AGORA TODOS VÊEM E PODEM USAR
     const newAppointmentBtn = document.getElementById('newAppointmentBtn');
     if (newAppointmentBtn) {
         newAppointmentBtn.style.display = 'block';
@@ -1319,7 +1326,6 @@ function adjustInterfaceForUserType() {
         console.log('✅ Botão de novo agendamento ativado para todos');
     }
     
-    // 2. Filtro de barbeiro (apenas admin vê)
     const barberFilterSection = document.querySelector('.section.mt-20');
     if (barberFilterSection) {
         if (isAdmin) {
@@ -1329,7 +1335,6 @@ function adjustInterfaceForUserType() {
         }
     }
     
-    // 3. Título da página
     const pageTitle = document.querySelector('.calendar-header h2');
     if (pageTitle && !isAdmin && currentUserBarber) {
         const badge = document.createElement('span');
@@ -1345,8 +1350,6 @@ function adjustInterfaceForUserType() {
         badge.innerHTML = `<i class="fas fa-user-tie"></i> ${currentUserBarber}`;
         pageTitle.appendChild(badge);
     }
-    
-    // 4. Mensagem informativa removida - sem restrições
 }
 
 // ========== FUNÇÕES DA AGENDA VISUAL ==========
@@ -1488,12 +1491,13 @@ function renderCalendar() {
                     cell.classList.add('weekend');
                 }
 
-                if (dayIndex === 6) {
-                    cell.classList.add('closed');
-                    cell.innerHTML = '<div class="closed-label">Fechado</div>';
-                    timeSlot.appendChild(cell);
-                    continue;
-                }
+                // Domingo agora está aberto (removido o closed)
+                // if (dayIndex === 6) {
+                //     cell.classList.add('closed');
+                //     cell.innerHTML = '<div class="closed-label">Fechado</div>';
+                //     timeSlot.appendChild(cell);
+                //     continue;
+                // }
 
                 const appointmentsForSlot = appointmentsToShow.filter(app => {
                     if (!app.date || !app.time) return false;
@@ -2090,4 +2094,4 @@ window.closeModal = closeModal;
 window.filterByBarber = filterByBarber;
 window.clearAllFilters = clearAllFilters;
 
-console.log('✅ Módulo de agendamentos carregado - Modo: TODOS PODEM AGENDAR');
+console.log('✅ Módulo de agendamentos carregado - SEM RESTRIÇÕES de data/hora');
